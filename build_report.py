@@ -132,7 +132,8 @@ def build_payload(p):
         q[f"tickets_{grain}"] = sql(f"""
             WITH o AS (SELECT order_id FROM main.ng_delivery.dim_order_delivery WHERE {F})
             SELECT date_format(date_trunc('{trunc}', sc.created), '{fmt}') AS period,
-                   COUNT(*) AS tickets
+                   SUM(CASE WHEN sc.user_type = 'eater' THEN 1 ELSE 0 END) AS tickets,
+                   SUM(CASE WHEN sc.user_type = 'courier' THEN 1 ELSE 0 END) AS courier_tickets
             FROM main.ng_customer_support.customer_support_support_case sc
             JOIN o ON CAST(sc.order_id AS STRING) = CAST(o.order_id AS STRING)
             WHERE sc.created >= '{START_DATE}'
@@ -186,7 +187,7 @@ def build_payload(p):
         SELECT o.provider_id, COUNT(*) AS tickets
         FROM main.ng_customer_support.customer_support_support_case sc
         JOIN o ON CAST(sc.order_id AS STRING) = CAST(o.order_id AS STRING)
-        WHERE sc.created >= '{START_DATE}'
+        WHERE sc.created >= '{START_DATE}' AND sc.user_type = 'eater'
         GROUP BY 1
     """)
 
@@ -215,6 +216,7 @@ def build_payload(p):
     def series(grain):
         bench = {r["period"]: r for r in q[f"bench_{grain}"]}
         tickets = {r["period"]: num(r["tickets"]) for r in q[f"tickets_{grain}"]}
+        courier_tickets = {r["period"]: num(r["courier_tickets"]) for r in q[f"tickets_{grain}"]}
         out = []
         for r in q[grain]:
             per = r["period"]
@@ -241,6 +243,7 @@ def build_payload(p):
                 "lost_ops": num(r["lost_ops"]),
                 "lost_other": num(r["lost_other"]),
                 "tickets": tickets.get(per, 0),
+                "courier_tickets": courier_tickets.get(per, 0),
                 "contact_rate": round(100.0 * tickets.get(per, 0) / orders, 1) if orders else 0,
             })
         return out
@@ -294,6 +297,7 @@ def build_payload(p):
         "lost_provider": sum(r["lost_provider"] for r in monthly),
         "bad_orders": sum(r["bad_orders"] for r in monthly),
         "tickets": sum(r["tickets"] for r in monthly),
+        "courier_tickets": sum(r["courier_tickets"] for r in monthly),
         "stores_total": len(stores),
         "cities_total": len(cities),
         "stores_active_7d": active_7d,

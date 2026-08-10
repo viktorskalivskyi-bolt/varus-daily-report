@@ -281,7 +281,7 @@ function render(slug) {
     <div class="kpi violet"><div class="v">${t.bad_rate}%</div><div class="l">Bad rate (${fmtN(t.bad_orders)} bad orders)</div><div class="s">Peer: ${t.bench_bad_rate}% (${badDelta > 0 ? "+" : ""}${badDelta} п.п.)</div></div>
     <div class="kpi red"><div class="v">${t.ndr_pct}%</div><div class="l">NDR (${fmtN(t.failed)} failed)</div><div class="s">Peer: ${t.bench_ndr_pct}% (${ndrDelta > 0 ? "+" : ""}${ndrDelta} п.п.)</div></div>
     <div class="kpi red"><div class="v">${fmtUAH(t.lost_gmv)}</div><div class="l">Втрачений GMV</div><div class="s">З вини партнера: ${fmtUAH(t.lost_provider)} (${(100*t.lost_provider/t.lost_gmv).toFixed(0)}%)</div></div>
-    <div class="kpi amber"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів</div><div class="s">Contact rate: ${t.contact_rate} на 100 зам.</div></div>`;
+    <div class="kpi amber"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів від клієнтів</div><div class="s">${t.contact_rate} на 100 зам. · ще ${fmtN(t.courier_tickets)} від кур'єрів</div></div>`;
 
   const worstM = [...D.monthly].sort((a,b) => (b.lost_provider+b.lost_ops+b.lost_other)-(a.lost_provider+a.lost_ops+a.lost_other))[0];
   const worstS = [...D.stores].sort((a,b) => b.lost_gmv - a.lost_gmv)[0];
@@ -459,14 +459,17 @@ function render(slug) {
 
   // --- CS ---
   document.getElementById("csNote").textContent =
-    "CS-тікети — всі support cases, привʼязані до замовлень " + D.title +
-    " (Beehive). Contact rate — тікетів на 100 замовлень.";
+    "CS-тікети — support cases (Beehive), привʼязані до замовлень " + D.title + ". " +
+    "Клієнтські (eater) і кур'єрські рахуються окремо: кур'єрські — це звернення кур'єрів " +
+    "(стор не видає замовлення, довге очікування) і теж сигнал проблем на сторах. " +
+    "Contact rate — клієнтських тікетів на 100 замовлень.";
   mkChart("chCsWeekly", {
     data: {
       labels: D.weekly.map(r => wLabel(r.period)),
       datasets: [
-        { type: "bar", label: "CS-тікети, шт.", data: D.weekly.map(r => r.tickets), backgroundColor: gradFill("rgba(20,128,90,.6)", "rgba(52,209,134,.95)"), borderRadius: 4, yAxisID: "y" },
-        { type: "line", label: "Contact rate", data: D.weekly.map(r => r.contact_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
+        { type: "bar", stack: "cs", label: "Від клієнтів, шт.", data: D.weekly.map(r => r.tickets), backgroundColor: gradFill("rgba(20,128,90,.6)", "rgba(52,209,134,.95)"), borderRadius: 4, yAxisID: "y" },
+        { type: "bar", stack: "cs", label: "Від кур'єрів, шт.", data: D.weekly.map(r => r.courier_tickets), backgroundColor: gradFill("rgba(139,161,151,.45)", "rgba(139,161,151,.75)"), borderRadius: 4, yAxisID: "y" },
+        { type: "line", label: "Contact rate (клієнти)", data: D.weekly.map(r => r.contact_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
       ],
     },
     options: {
@@ -474,9 +477,9 @@ function render(slug) {
       interaction: { mode: "index", intersect: false },
       plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } } },
       scales: {
-        y: { beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
+        y: { stacked: true, beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
         y2: { beginAtZero: true, position: "right", title: { display: true, text: "на 100 зам." }, grid: { drawOnChartArea: false } },
-        x: { grid: { display: false } },
+        x: { stacked: true, grid: { display: false } },
       },
     },
   });
@@ -524,7 +527,8 @@ function render(slug) {
     "Методологія: GMV/AOV — доставлені замовлення; failed = order_state 'failed'; bad orders = is_bad_order (фейл / запізнення 15+ хв / CS-скарга, розбивка за bad_order_type); " +
     "втрачений GMV = сума order_gmv_local зафейлених замовлень (недоотриманий GMV, не чистий збиток); " +
     "вина — bad_order_actor_at_fault; NDR = failed / всі замовлення; peer-бенчмарк — усі партнери вертикалі " + D.benchmark_label + " в UA; " +
-    "CS-тікети — main.ng_customer_support.customer_support_support_case. Період: з " + META.start_date + ". Звіт згенеровано автоматично.";
+    "CS-тікети — main.ng_customer_support.customer_support_support_case (у KPI, contact rate і таблиці сторів — лише клієнтські, user_type = eater; кур'єрські показані окремо). " +
+    "Період: з " + META.start_date + ". Звіт згенеровано автоматично.";
 }
 
 function renderStores() {
