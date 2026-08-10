@@ -1,0 +1,56 @@
+name: Daily VARUS report
+
+on:
+  schedule:
+    # 06:00 Kyiv = 03:00 UTC (summer, EEST) or 04:00 UTC (winter, EET).
+    # Both slots fire; the guard step keeps only the run where Kyiv hour == 6.
+    - cron: "0 3 * * *"
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-report
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Kyiv 06:00 guard
+        id: guard
+        run: |
+          HOUR=$(TZ=Europe/Kyiv date +%H)
+          echo "Kyiv hour: $HOUR"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "$HOUR" = "06" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+
+      - name: Build report
+        if: steps.guard.outputs.run == 'true'
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_WAREHOUSE_ID: ${{ secrets.DATABRICKS_WAREHOUSE_ID }}
+        run: python3 build_report.py
+
+      - name: Commit and push
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          git config user.name "varus-report-bot"
+          git config user.email "actions@github.com"
+          git add docs/index.html
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Daily report update: $(TZ=Europe/Kyiv date '+%Y-%m-%d %H:%M') Kyiv"
+            git push
+          fi

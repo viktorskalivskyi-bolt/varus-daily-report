@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VARUS · Daily Ops Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --green: #34d186;
+    --green-dark: #14805a;
+    --red: #eb4d4b;
+    --red-soft: rgba(235, 77, 75, .12);
+    --amber: #f0a92e;
+    --ink: #16281e;
+    --ink-2: #4c5f56;
+    --ink-3: #8ba197;
+    --bg: #f4f7f5;
+    --card: #ffffff;
+    --line: #e3eae6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.45;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+  header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+  .updated { font-size: 13px; color: var(--ink-3); }
+  .updated b { color: var(--green-dark); font-weight: 600; }
+  .sub { font-size: 14px; color: var(--ink-2); margin-bottom: 24px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .kpi .v { font-size: 28px; font-weight: 800; letter-spacing: -.02em; }
+  .kpi .l { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+  .kpi.red .v { color: var(--red); }
+  .kpi.green .v { color: var(--green-dark); }
+  section { margin-bottom: 30px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .note { font-size: 13px; color: var(--ink-3); margin-bottom: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+  .chart-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .chart-box { position: relative; height: 300px; }
+  .chart-box.tall { height: 380px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding: 10px 12px; border-bottom: 2px solid var(--line); position: sticky; top: 0; background: var(--card); }
+  td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; }
+  .pill.failed { background: var(--red-soft); color: var(--red); }
+  .pill.delivered { background: rgba(52, 209, 134, .14); color: var(--green-dark); }
+  .pill.na { background: #eef1ef; color: var(--ink-3); }
+  .tbl-scroll { max-height: 620px; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  .lost { color: var(--red); font-weight: 700; }
+  .callout { border-left: 4px solid var(--amber); background: #fdf6e8; border-radius: 0 12px 12px 0; padding: 16px 20px; font-size: 14px; }
+  .callout b { font-weight: 700; }
+  footer { margin-top: 40px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <h1>VARUS · Daily Ops Report</h1>
+    </div>
+    <div class="updated">Оновлено: <b id="updated"></b> · автооновлення щодня о 06:00 (Київ)</div>
+  </header>
+  <div class="sub" id="subtitle"></div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <h2>Динаміка по місяцях</h2>
+    <div class="note">Зафейлені замовлення та CS-тікети (стовпці, ліва вісь) проти втраченого GMV (лінія, права вісь). Джерело: Databricks, main.ng_delivery.dim_order_delivery + customer_support_support_case.</div>
+    <div class="card"><div class="chart-box"><canvas id="chartMonthly"></canvas></div></div>
+  </section>
+
+  <section>
+    <h2>Динаміка по тижнях</h2>
+    <div class="note">Ті самі метрики по тижнях (тиждень = дата понеділка). Останній тиждень може бути неповний.</div>
+    <div class="card"><div class="chart-box"><canvas id="chartWeekly"></canvas></div></div>
+  </section>
+
+  <section>
+    <h2>Скільки втрачаємо GMV</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="chart-title">Втрачений GMV по місяцях, ₴</div>
+        <div class="chart-box"><canvas id="chartGmvMonthly"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="chart-title">Втрачений GMV по тижнях, ₴</div>
+        <div class="chart-box"><canvas id="chartGmvWeekly"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Найпроблемніші локації</h2>
+    <div class="note">Топ-12 сторів за втраченим GMV зафейлених замовлень за весь період.</div>
+    <div class="grid2">
+      <div class="card"><div class="chart-box tall"><canvas id="chartStores"></canvas></div></div>
+      <div class="tbl-scroll" style="max-height: 440px;">
+        <table id="storesTable">
+          <thead><tr><th>Стор</th><th class="num">Замовлень</th><th class="num">Failed</th><th class="num">NDR %</th><th class="num">Втрачено, ₴</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="callout" id="callout"></div>
+  </section>
+
+  <section>
+    <h2>Скарги CS з #ua-delivery-daily</h2>
+    <div class="note" id="complaintsNote"></div>
+    <div class="tbl-scroll">
+      <table id="complaintsTable">
+        <thead><tr><th>Дата</th><th>Адреса</th><th>Суть звернення</th><th>Order</th><th>Статус</th><th class="num">Втрачено, ₴</th><th>Тікет</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Джерела: Slack #ua-delivery-daily (кураторський список скарг) · Databricks: main.ng_delivery.dim_order_delivery, main.ng_customer_support.customer_support_support_case ·
+    Метрики: failed = order_state 'failed'; втрачений GMV = сума order_gmv_local зафейлених замовлень; CS-тікети = support cases, привʼязані до замовлень VARUS UA.
+  </footer>
+</div>
+
+<script>
+/*__DATA__*/
+
+const fmtUAH = (v) => new Intl.NumberFormat("uk-UA").format(Math.round(v)) + " ₴";
+const fmtN = (v) => new Intl.NumberFormat("uk-UA").format(v);
+const MONTH_NAMES = { "05": "Травень", "06": "Червень", "07": "Липень", "08": "Серпень", "09": "Вересень", "10": "Жовтень", "11": "Листопад", "12": "Грудень", "01": "Січень", "02": "Лютий", "03": "Березень", "04": "Квітень" };
+const monthLabel = (p) => MONTH_NAMES[p.split("-")[1]] || p;
+const weekLabel = (p) => { const [y, m, d] = p.split("-"); return d + "." + m; };
+
+document.getElementById("updated").textContent = DATA.generated_at;
+document.getElementById("subtitle").textContent =
+  "Всі локації VARUS в Україні · період з " + DATA.start_date.split("-").reverse().join(".") +
+  " · " + fmtN(DATA.totals.orders) + " замовлень";
+
+const t = DATA.totals;
+document.getElementById("kpis").innerHTML = `
+  <div class="kpi"><div class="v">${fmtN(t.orders)}</div><div class="l">Замовлень за період</div></div>
+  <div class="kpi red"><div class="v">${fmtN(t.failed)}</div><div class="l">Зафейлено (NDR ${t.ndr_pct}%)</div></div>
+  <div class="kpi red"><div class="v">${fmtUAH(t.lost_gmv)}</div><div class="l">Втрачений GMV</div></div>
+  <div class="kpi"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів по замовленнях VARUS</div></div>
+  <div class="kpi green"><div class="v">${DATA.complaints.length}</div><div class="l">Ескалацій у #ua-delivery-daily</div></div>`;
+
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.color = "#4c5f56";
+
+function dualChart(elId, rows, labelFn) {
+  new Chart(document.getElementById(elId), {
+    data: {
+      labels: rows.map(r => labelFn(r.period)),
+      datasets: [
+        { type: "bar", label: "Failed замовлення", data: rows.map(r => r.failed), backgroundColor: "rgba(235,77,75,.75)", borderRadius: 4, yAxisID: "y" },
+        { type: "bar", label: "CS-тікети", data: rows.map(r => r.tickets), backgroundColor: "rgba(52,209,134,.65)", borderRadius: 4, yAxisID: "y" },
+        { type: "line", label: "Втрачений GMV, ₴", data: rows.map(r => r.lost_gmv), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 12, boxHeight: 12 } },
+        tooltip: { callbacks: { label: (c) => c.dataset.label + ": " + (c.dataset.yAxisID === "y2" ? fmtUAH(c.parsed.y) : fmtN(c.parsed.y)) } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
+        y2: { beginAtZero: true, position: "right", title: { display: true, text: "₴" }, grid: { drawOnChartArea: false },
+              ticks: { callback: (v) => fmtN(v) } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+}
+dualChart("chartMonthly", DATA.monthly, monthLabel);
+dualChart("chartWeekly", DATA.weekly, weekLabel);
+
+function gmvChart(elId, rows, labelFn) {
+  new Chart(document.getElementById(elId), {
+    type: "bar",
+    data: {
+      labels: rows.map(r => labelFn(r.period)),
+      datasets: [{ label: "Втрачений GMV, ₴", data: rows.map(r => r.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 5 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: (c) => fmtUAH(c.parsed.y) } } },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: (v) => fmtN(v) }, grid: { color: "#eef2ef" } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+}
+gmvChart("chartGmvMonthly", DATA.monthly, monthLabel);
+gmvChart("chartGmvWeekly", DATA.weekly, weekLabel);
+
+new Chart(document.getElementById("chartStores"), {
+  type: "bar",
+  data: {
+    labels: DATA.top_stores.map(s => s.name),
+    datasets: [{ label: "Втрачений GMV, ₴", data: DATA.top_stores.map(s => s.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 5 }],
+  },
+  options: {
+    indexAxis: "y", responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => fmtUAH(c.parsed.x) } } },
+    scales: { x: { beginAtZero: true, ticks: { callback: (v) => fmtN(v) }, grid: { color: "#eef2ef" } }, y: { grid: { display: false } } },
+  },
+});
+
+document.querySelector("#storesTable tbody").innerHTML = DATA.top_stores.map(s => `
+  <tr><td>${s.name}</td><td class="num">${fmtN(s.orders)}</td><td class="num">${fmtN(s.failed)}</td>
+  <td class="num">${s.ndr_pct}%</td><td class="num lost">${fmtN(s.lost_gmv)}</td></tr>`).join("");
+
+const worstMonth = [...DATA.monthly].sort((a, b) => b.lost_gmv - a.lost_gmv)[0];
+const worstStore = DATA.top_stores[0];
+document.getElementById("callout").innerHTML =
+  `<b>Ключове:</b> за період втрачено <b>${fmtUAH(t.lost_gmv)}</b> GMV (${fmtN(t.failed)} зафейлених замовлень, NDR ${t.ndr_pct}%). ` +
+  `Найгірший місяць — <b>${monthLabel(worstMonth.period)}</b> (${fmtUAH(worstMonth.lost_gmv)}). ` +
+  `Найбільші втрати на сторі <b>${worstStore.name}</b>: ${fmtUAH(worstStore.lost_gmv)} (NDR ${worstStore.ndr_pct}%). ` +
+  `Головні причини за ескалаціями CS: відмова збирати замовлення через брак персоналу та видалення/заміна позицій без дзвінка клієнту.`;
+
+const c = DATA.complaints;
+const cFailed = c.filter(r => r.state === "failed");
+const cLost = cFailed.reduce((s, r) => s + (r.gmv || 0), 0);
+document.getElementById("complaintsNote").textContent =
+  `Кураторський список ескалацій зі Slack (02.05 — 10.08.2026): ${c.length} звернень, ` +
+  `з них ${cFailed.length} із зафейленим замовленням на ${fmtN(cLost)} ₴. Beehive-тікети зматчені з замовленнями через Databricks.`;
+
+document.querySelector("#complaintsTable tbody").innerHTML = c.map(r => {
+  const addr = r.city && !r.addr.startsWith("(мережа") ? `${r.addr}, ${r.city}` : r.addr;
+  const order = r.ref ? `${r.ref}${r.order_id ? " · " + r.order_id : ""}` : "—";
+  const pill = r.state === "failed" ? `<span class="pill failed">Failed</span>`
+    : r.state === "delivered" ? `<span class="pill delivered">Delivered</span>`
+    : `<span class="pill na">—</span>`;
+  const lost = r.state === "failed" && r.gmv ? `<span class="lost">${fmtN(r.gmv)}</span>` : (r.state === "delivered" ? "0" : "—");
+  return `<tr><td style="white-space:nowrap">${r.date.split("-").reverse().slice(0, 2).join(".")}</td>
+    <td>${addr}</td><td>${r.text}</td><td style="white-space:nowrap">${order}</td>
+    <td>${pill}</td><td class="num">${lost}</td><td style="white-space:nowrap">${r.ticket || "—"}</td></tr>`;
+}).join("");
+</script>
+</body>
+</html>
