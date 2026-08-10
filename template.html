@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Partner Ops Report</title>
+<title>Operational Report</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
   :root {
@@ -15,24 +15,29 @@
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; }
-  .wrap { max-width: 1220px; margin: 0 auto; padding: 32px 24px 64px; }
-  header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 6px; }
-  .brand { display: flex; align-items: center; gap: 12px; }
+  .wrap { max-width: 1220px; margin: 0 auto; padding: 28px 24px 64px; }
+  header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 6px; }
+  .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
-  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+  h1 { font-size: 25px; font-weight: 800; letter-spacing: -.02em; }
+  .partner-select { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+  .partner-select label { font-size: 12px; color: var(--ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .partner-select select { font: inherit; font-size: 15px; font-weight: 700; border: none; background: transparent; color: var(--ink); cursor: pointer; outline: none; }
   .updated { font-size: 13px; color: var(--ink-3); }
   .updated b { color: var(--green-dark); font-weight: 600; }
-  .sub { font-size: 14px; color: var(--ink-2); margin-bottom: 22px; }
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 10px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
-  .kpi .v { font-size: 24px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
+  .sub { font-size: 13.5px; color: var(--ink-2); margin-bottom: 20px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 12px; margin-bottom: 10px; }
+  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .kpi .v { font-size: 23px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
   .kpi .l { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
   .kpi .s { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
   .kpi.red .v { color: var(--red); }
   .kpi.green .v { color: var(--green-dark); }
-  section { margin-bottom: 34px; }
-  .block-head { display: flex; align-items: center; gap: 10px; margin: 28px 0 4px; }
+  section { margin-bottom: 30px; }
+  .block-head { display: flex; align-items: center; gap: 10px; margin: 26px 0 4px; }
   .block-tag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
+  .block-tag.biz { background: rgba(74,125,214,.12); color: var(--blue); }
+  .block-tag.cover { background: rgba(240,169,46,.16); color: #b07708; }
   .block-tag.failed { background: var(--red-soft); color: var(--red); }
   .block-tag.cs { background: rgba(52,209,134,.14); color: var(--green-dark); }
   h2 { font-size: 19px; font-weight: 800; }
@@ -42,10 +47,9 @@
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 940px) { .grid2 { grid-template-columns: 1fr; } }
   .chart-box { position: relative; height: 300px; }
-  .chart-box.short { height: 260px; }
   .chart-box.tall { height: 340px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding: 9px 10px; border-bottom: 2px solid var(--line); position: sticky; top: 0; background: var(--card); cursor: default; }
+  th { text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-3); padding: 9px 10px; border-bottom: 2px solid var(--line); position: sticky; top: 0; background: var(--card); }
   td { padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tr:last-child td { border-bottom: none; }
   .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -56,8 +60,9 @@
   .tbl-scroll { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
   .lost { color: var(--red); font-weight: 700; }
   .badge-hot { color: var(--red); font-weight: 700; }
+  .stale { color: var(--red); font-weight: 700; }
   .callout { border-left: 4px solid var(--amber); background: #fdf6e8; border-radius: 0 12px 12px 0; padding: 14px 18px; font-size: 14px; margin-bottom: 14px; }
-  select { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); max-width: 100%; }
+  select.inline { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); max-width: 100%; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
   footer { margin-top: 40px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
@@ -66,56 +71,74 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="brand"><div class="brand-dot"></div><h1 id="title"></h1></div>
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <h1>Operational Report</h1>
+      <div class="partner-select">
+        <label>Партнер</label>
+        <select id="partnerSelect"></select>
+      </div>
+    </div>
     <div class="updated">Оновлено: <b id="updated"></b> · автооновлення щодня о 06:00 (Київ)</div>
   </header>
   <div class="sub" id="subtitle"></div>
 
-  <!-- ===== Загальна картина ===== -->
   <div class="kpis" id="kpis"></div>
   <div class="callout" id="callout"></div>
 
-  <!-- ===== FAILED BLOCK ===== -->
+  <!-- ===== БІЗНЕС ===== -->
+  <div class="block-head"><span class="block-tag biz">Бізнес</span><h2>GMV, замовлення, середній чек</h2></div>
+  <div class="note">GMV — доставлені замовлення. AOV — середній чек доставленого замовлення. Клік по легенді ховає серію.</div>
+  <section>
+    <div class="grid2">
+      <div class="card"><h3>По місяцях: GMV (₴) + замовлення</h3><div class="chart-box"><canvas id="chBizMonthly"></canvas></div></div>
+      <div class="card"><h3>По тижнях: GMV (₴) + замовлення</h3><div class="chart-box"><canvas id="chBizWeekly"></canvas></div></div>
+    </div>
+  </section>
+
+  <!-- ===== ПОКРИТТЯ ===== -->
+  <div class="block-head"><span class="block-tag cover">Покриття</span><h2>Магазини та міста</h2></div>
+  <div class="note" id="coverNote"></div>
+  <section>
+    <div class="grid2">
+      <div class="card"><h3>Замовлення та стори по містах</h3><div class="chart-box tall"><canvas id="chCities"></canvas></div></div>
+      <div class="tbl-scroll" style="max-height: 400px;">
+        <table id="citiesTable">
+          <thead><tr><th>Місто</th><th class="num">Сторів</th><th class="num">Замовлень</th><th class="num">GMV, ₴</th><th class="num">Частка GMV</th><th class="num">NDR %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAILED ===== -->
   <div class="block-head"><span class="block-tag failed">Failed</span><h2>Втрати: зафейлені замовлення та GMV</h2></div>
-  <div class="note">Втрачений GMV розбито за винуватцем (bad_order_actor_at_fault): вина партнера / вина Bolt ops (кур'єри, supply) / інше (клієнт, форс-мажор). Лінії — NDR% партнера проти peer-бенчмарку. Клік по легенді ховає серію.</div>
-
+  <div class="note">Втрачений GMV розбито за винуватцем (bad_order_actor_at_fault): вина партнера / вина Bolt ops (кур'єри, supply) / інше (клієнт, форс-мажор). Лінії — NDR% партнера проти peer-бенчмарку.</div>
   <section>
     <div class="grid2">
-      <div class="card">
-        <h3>По місяцях: втрачений GMV (₴) + NDR %</h3>
-        <div class="chart-box"><canvas id="chLostMonthly"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>По тижнях: втрачений GMV (₴) + NDR %</h3>
-        <div class="chart-box"><canvas id="chLostWeekly"></canvas></div>
-      </div>
+      <div class="card"><h3>По місяцях: втрачений GMV (₴) + NDR %</h3><div class="chart-box"><canvas id="chLostMonthly"></canvas></div></div>
+      <div class="card"><h3>По тижнях: втрачений GMV (₴) + NDR %</h3><div class="chart-box"><canvas id="chLostWeekly"></canvas></div></div>
     </div>
   </section>
-
   <section>
     <div class="grid2">
-      <div class="card">
-        <h3>Причини фейлів — топ за втраченим GMV, ₴</h3>
-        <div class="chart-box tall"><canvas id="chReasons"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Фейли за годиною доби (кількість)</h3>
-        <div class="chart-box tall"><canvas id="chHourly"></canvas></div>
-      </div>
+      <div class="card"><h3>Причини фейлів — топ за втраченим GMV, ₴</h3><div class="chart-box tall"><canvas id="chReasons"></canvas></div></div>
+      <div class="card"><h3>Фейли за годиною доби (кількість)</h3><div class="chart-box tall"><canvas id="chHourly"></canvas></div></div>
     </div>
   </section>
-
   <section>
     <h3 style="margin-bottom:4px">Стори: куди провалюватись</h3>
-    <div class="note">Сортування кліком по заголовку. Лінк на назві веде в адмінку. Нижче — тижнева динаміка вибраного стора.</div>
+    <div class="note">Сортування кліком по заголовку. Назва стора — лінк в адмінку. «Ост. замовлення» червоним = стор без замовлень 7+ днів. Праворуч — тижнева динаміка вибраного стора.</div>
     <div class="grid2">
       <div class="tbl-scroll" style="max-height: 480px;">
         <table id="storesTable">
           <thead><tr>
             <th data-k="name">Стор</th><th class="num" data-k="orders">Замовл.</th>
-            <th class="num" data-k="failed">Failed</th><th class="num" data-k="ndr_pct">NDR %</th>
-            <th class="num" data-k="lost_gmv">Втрачено ₴</th><th class="num" data-k="lost_provider">З вини стора ₴</th>
-            <th class="num" data-k="tickets">CS-тікети</th>
+            <th class="num" data-k="gmv">GMV ₴</th>
+            <th class="num" data-k="ndr_pct">NDR %</th>
+            <th class="num" data-k="lost_gmv">Втрачено ₴</th>
+            <th class="num" data-k="tickets">Тікети</th>
+            <th data-k="last_order">Ост. зам.</th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -123,31 +146,23 @@
       <div class="card">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px;">
           <h3 style="margin:0">Тижнева динаміка стора</h3>
-          <select id="storeSelect"></select>
+          <select id="storeSelect" class="inline"></select>
         </div>
-        <div class="chart-box tall" style="height:400px"><canvas id="chStoreDrill"></canvas></div>
+        <div class="chart-box" style="height:400px"><canvas id="chStoreDrill"></canvas></div>
       </div>
     </div>
   </section>
 
-  <!-- ===== CS BLOCK ===== -->
+  <!-- ===== CS ===== -->
   <div class="block-head"><span class="block-tag cs">CS</span><h2>Клієнтська підтримка: тікети та ескалації</h2></div>
   <div class="note" id="csNote"></div>
-
   <section>
-    <div class="grid2">
-      <div class="card">
-        <h3>CS-тікети по тижнях + contact rate (тікетів на 100 замовлень)</h3>
-        <div class="chart-box"><canvas id="chCsWeekly"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>Про що ескалації в #ua-delivery-daily (теми)</h3>
-        <div class="chart-box"><canvas id="chThemes"></canvas></div>
-      </div>
+    <div class="grid2" id="csCharts">
+      <div class="card"><h3>CS-тікети по тижнях + contact rate (на 100 замовлень)</h3><div class="chart-box"><canvas id="chCsWeekly"></canvas></div></div>
+      <div class="card" id="themesCard"><h3>Про що ескалації в Slack (теми)</h3><div class="chart-box"><canvas id="chThemes"></canvas></div></div>
     </div>
   </section>
-
-  <section>
+  <section id="complaintsSection">
     <h3 style="margin-bottom:4px">Ескалації CS зі Slack</h3>
     <div class="note" id="complaintsNote"></div>
     <div class="tbl-scroll">
@@ -164,52 +179,113 @@
 <script>
 /*__DATA__*/
 
-const THEMES = [
-  { name: "Відмова збирати / брак персоналу", n: 28 },
-  { name: "Видалення чи заміна позицій без узгодження", n: 22 },
-  { name: "Готовність / pickup code / видача", n: 11 },
-  { name: "Довге очікування кур'єра", n: 6 },
-  { name: "Графік роботи, вечірні відмови", n: 5 },
-  { name: "Ціни змінені без попередження", n: 4 },
-  { name: "Інше", n: 3 },
-];
-
 const fmtN = (v) => new Intl.NumberFormat("uk-UA").format(Math.round(v));
 const fmtUAH = (v) => fmtN(v) + " ₴";
 const MONTHS = { "01":"Січ","02":"Лют","03":"Бер","04":"Кві","05":"Тра","06":"Чер","07":"Лип","08":"Сер","09":"Вер","10":"Жов","11":"Лис","12":"Гру" };
 const mLabel = (p) => MONTHS[p.split("-")[1]] || p;
 const wLabel = (p) => { const [y,m,d] = p.split("-"); return d + "." + m; };
-
-document.title = DATA.partner.title + " · Ops Report";
-document.getElementById("title").textContent = DATA.partner.title + " · Ops Report";
-document.getElementById("updated").textContent = DATA.generated_at;
-document.getElementById("subtitle").textContent =
-  "Всі локації " + DATA.partner.title + " в Україні · з " + DATA.start_date.split("-").reverse().join(".") +
-  " · Databricks: dim_order_delivery + customer_support_support_case · бенчмарк: " + DATA.partner.benchmark_label;
-
-const t = DATA.totals;
-const ndrDelta = (t.ndr_pct - t.bench_ndr_pct).toFixed(2);
-document.getElementById("kpis").innerHTML = `
-  <div class="kpi"><div class="v">${fmtN(t.orders)}</div><div class="l">Замовлень</div><div class="s">GMV доставлено: ${fmtUAH(t.gmv_delivered)}</div></div>
-  <div class="kpi red"><div class="v">${t.ndr_pct}%</div><div class="l">NDR (${fmtN(t.failed)} failed)</div><div class="s">Peer-бенчмарк: ${t.bench_ndr_pct}% (${ndrDelta > 0 ? "+" : ""}${ndrDelta} п.п.)</div></div>
-  <div class="kpi red"><div class="v">${fmtUAH(t.lost_gmv)}</div><div class="l">Втрачений GMV (всі фейли)</div><div class="s">${(100*t.lost_gmv/(t.lost_gmv+t.gmv_delivered)).toFixed(1)}% від потенційного GMV</div></div>
-  <div class="kpi red"><div class="v">${fmtUAH(t.lost_provider)}</div><div class="l">З вини партнера</div><div class="s">${(100*t.lost_provider/t.lost_gmv).toFixed(0)}% всіх втрат</div></div>
-  <div class="kpi"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів</div><div class="s">Contact rate: ${t.contact_rate} на 100 замовлень</div></div>
-  <div class="kpi green"><div class="v">${DATA.complaints.length}</div><div class="l">Ескалацій у Slack</div><div class="s">#ua-delivery-daily, кураторський список</div></div>`;
-
-const worstM = [...DATA.monthly].sort((a,b) => (b.lost_provider+b.lost_ops+b.lost_other)-(a.lost_provider+a.lost_ops+a.lost_other))[0];
-const worstS = DATA.stores[0];
-document.getElementById("callout").innerHTML =
-  `<b>Ключове:</b> NDR ${t.ndr_pct}% проти ${t.bench_ndr_pct}% у peer-мереж — ${ndrDelta > 0 ? "гірше на <b>" + ndrDelta + " п.п.</b>" : "краще"}. ` +
-  `${(100*t.lost_provider/t.lost_gmv).toFixed(0)}% втраченого GMV — з вини партнера (${fmtUAH(t.lost_provider)}). ` +
-  `Найгірший місяць: <b>${mLabel(worstM.period)}</b>. Найбільші втрати: <b>${worstS.name}</b> (${fmtUAH(worstS.lost_gmv)}, NDR ${worstS.ndr_pct}%).`;
+const adminUrl = (id) => "https://admin-panel.bolt.eu/delivery-provider/providers/" + id + "?tab=info";
 
 Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 Chart.defaults.color = "#4c5f56";
 
-// --- FAILED: stacked lost GMV + NDR lines ---
-function lostChart(elId, rows, labelFn) {
-  new Chart(document.getElementById(elId), {
+let charts = [];
+function mkChart(elId, cfg) {
+  const ch = new Chart(document.getElementById(elId), cfg);
+  charts.push(ch);
+  return ch;
+}
+function destroyAll() { charts.forEach(c => c.destroy()); charts = []; }
+
+let sortKey = "lost_gmv", sortDir = -1;
+let D = null;
+
+function render(slug) {
+  D = DATA_ALL[slug];
+  const t = D.totals;
+  destroyAll();
+
+  document.title = "Operational Report · " + D.title;
+  document.getElementById("updated").textContent = META.generated_at;
+  document.getElementById("subtitle").textContent =
+    "Всі локації " + D.title + " в Україні · з " + META.start_date.split("-").reverse().join(".") +
+    " · Databricks: dim_order_delivery + customer_support_support_case · бенчмарк: " + D.benchmark_label;
+
+  const ndrDelta = (t.ndr_pct - t.bench_ndr_pct).toFixed(2);
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi"><div class="v">${fmtUAH(t.gmv)}</div><div class="l">GMV (доставлено)</div><div class="s">AOV: ${fmtUAH(t.aov)}</div></div>
+    <div class="kpi"><div class="v">${fmtN(t.orders)}</div><div class="l">Замовлень</div><div class="s">${fmtN(Math.round(t.orders / D.weekly.length))} на тиждень у середньому</div></div>
+    <div class="kpi green"><div class="v">${t.stores_total}</div><div class="l">Локацій · ${t.cities_total} міст</div><div class="s">Активні за 7 днів: ${t.stores_active_7d} з ${t.stores_total}</div></div>
+    <div class="kpi red"><div class="v">${t.ndr_pct}%</div><div class="l">NDR (${fmtN(t.failed)} failed)</div><div class="s">Peer: ${t.bench_ndr_pct}% (${ndrDelta > 0 ? "+" : ""}${ndrDelta} п.п.)</div></div>
+    <div class="kpi red"><div class="v">${fmtUAH(t.lost_gmv)}</div><div class="l">Втрачений GMV</div><div class="s">З вини партнера: ${fmtUAH(t.lost_provider)} (${(100*t.lost_provider/t.lost_gmv).toFixed(0)}%)</div></div>
+    <div class="kpi"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів</div><div class="s">Contact rate: ${t.contact_rate} на 100 зам.</div></div>`;
+
+  const worstM = [...D.monthly].sort((a,b) => (b.lost_provider+b.lost_ops+b.lost_other)-(a.lost_provider+a.lost_ops+a.lost_other))[0];
+  const worstS = [...D.stores].sort((a,b) => b.lost_gmv - a.lost_gmv)[0];
+  document.getElementById("callout").innerHTML =
+    `<b>Ключове:</b> NDR ${t.ndr_pct}% проти ${t.bench_ndr_pct}% у peer-мереж — ${ndrDelta > 0 ? "гірше на <b>" + ndrDelta + " п.п.</b>" : "краще"}. ` +
+    `Втрачено ${fmtUAH(t.lost_gmv)} (${(100*t.lost_gmv/(t.lost_gmv+t.gmv)).toFixed(1)}% потенційного GMV), з вини партнера — ${(100*t.lost_provider/t.lost_gmv).toFixed(0)}%. ` +
+    `Найгірший місяць: <b>${mLabel(worstM.period)}</b>. Найбільші втрати: <b>${worstS.name}</b> (${fmtUAH(worstS.lost_gmv)}, NDR ${worstS.ndr_pct}%).`;
+
+  // --- Бізнес ---
+  const bizChart = (elId, rows, labelFn) => mkChart(elId, {
+    data: {
+      labels: rows.map(r => labelFn(r.period)),
+      datasets: [
+        { type: "bar", label: "GMV доставлено, ₴", data: rows.map(r => r.gmv), backgroundColor: "rgba(74,125,214,.7)", borderRadius: 3, yAxisID: "y" },
+        { type: "line", label: "Замовлення, шт.", data: rows.map(r => r.orders), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } },
+        tooltip: { callbacks: {
+          label: (c) => c.dataset.label + ": " + (c.dataset.yAxisID === "y" ? fmtUAH(c.parsed.y) : fmtN(c.parsed.y)),
+          footer: (items) => "AOV: " + fmtUAH(rows[items[0].dataIndex].aov) } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "₴" }, ticks: { callback: fmtN }, grid: { color: "#eef2ef" } },
+        y2: { beginAtZero: true, position: "right", title: { display: true, text: "шт." }, grid: { drawOnChartArea: false } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+  bizChart("chBizMonthly", D.monthly, mLabel);
+  bizChart("chBizWeekly", D.weekly, wLabel);
+
+  // --- Покриття ---
+  document.getElementById("coverNote").textContent =
+    `Підключені локації = мали ≥1 замовлення з ${META.start_date.split("-").reverse().join(".")}. ` +
+    `Активні = мали замовлення за останні 7 днів (з ${D.active_cutoff.split("-").reverse().join(".")}). ` +
+    `Зараз: ${t.stores_active_7d} активних з ${t.stores_total} у ${t.cities_total} містах.`;
+  mkChart("chCities", {
+    data: {
+      labels: D.cities.map(c => c.city),
+      datasets: [
+        { type: "bar", label: "Замовлення, шт.", data: D.cities.map(c => c.orders), backgroundColor: "rgba(240,169,46,.75)", borderRadius: 3, yAxisID: "y" },
+        { type: "line", label: "Сторів", data: D.cities.map(c => c.stores), borderColor: "#16281e", backgroundColor: "#16281e", pointRadius: 4, showLine: false, yAxisID: "y2" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } },
+        tooltip: { callbacks: { footer: (items) => { const c = D.cities[items[0].dataIndex]; return "GMV: " + fmtUAH(c.gmv); } } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "замовлень" }, grid: { color: "#eef2ef" } },
+        y2: { beginAtZero: true, position: "right", title: { display: true, text: "сторів" }, grid: { drawOnChartArea: false } },
+        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      },
+    },
+  });
+  const gmvTotal = D.cities.reduce((s, c) => s + c.gmv, 0);
+  document.querySelector("#citiesTable tbody").innerHTML = D.cities.map(c => `
+    <tr><td>${c.city}</td><td class="num">${c.stores}</td><td class="num">${fmtN(c.orders)}</td>
+    <td class="num">${fmtN(c.gmv)}</td><td class="num">${(100*c.gmv/gmvTotal).toFixed(1)}%</td>
+    <td class="num ${100*c.failed/c.orders > t.bench_ndr_pct ? "badge-hot" : ""}">${(100*c.failed/c.orders).toFixed(2)}%</td></tr>`).join("");
+
+  // --- FAILED ---
+  const lostChart = (elId, rows, labelFn) => mkChart(elId, {
     data: {
       labels: rows.map(r => labelFn(r.period)),
       datasets: [
@@ -217,7 +293,7 @@ function lostChart(elId, rows, labelFn) {
         { type: "bar", stack: "lost", label: "Вина Bolt ops, ₴", data: rows.map(r => r.lost_ops), backgroundColor: "rgba(240,169,46,.8)", borderRadius: 3, yAxisID: "y" },
         { type: "bar", stack: "lost", label: "Інше, ₴", data: rows.map(r => r.lost_other), backgroundColor: "rgba(139,161,151,.6)", borderRadius: 3, yAxisID: "y" },
         { type: "line", label: "NDR %", data: rows.map(r => r.ndr_pct), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
-        { type: "line", label: "NDR % peer-бенчмарк", data: rows.map(r => r.bench_ndr_pct), borderColor: "#4a7dd6", borderDash: [6,4], backgroundColor: "#4a7dd6", tension: .3, pointRadius: 2, yAxisID: "y2" },
+        { type: "line", label: "NDR % peer", data: rows.map(r => r.bench_ndr_pct), borderColor: "#4a7dd6", borderDash: [6,4], backgroundColor: "#4a7dd6", tension: .3, pointRadius: 2, yAxisID: "y2" },
       ],
     },
     options: {
@@ -233,71 +309,139 @@ function lostChart(elId, rows, labelFn) {
       },
     },
   });
+  lostChart("chLostMonthly", D.monthly, mLabel);
+  lostChart("chLostWeekly", D.weekly, wLabel);
+
+  mkChart("chReasons", {
+    type: "bar",
+    data: {
+      labels: D.reasons.map(r => r.reason.length > 46 ? r.reason.slice(0, 44) + "…" : r.reason),
+      datasets: [{ label: "Втрачений GMV, ₴", data: D.reasons.map(r => r.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 4 }],
+    },
+    options: {
+      indexAxis: "y", responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: (c) => fmtUAH(c.parsed.x) + " · " + fmtN(D.reasons[c.dataIndex].n) + " замовлень" } } },
+      scales: { x: { beginAtZero: true, ticks: { callback: fmtN }, grid: { color: "#eef2ef" } }, y: { ticks: { font: { size: 11 } }, grid: { display: false } } },
+    },
+  });
+
+  const hours = Array.from({length: 24}, (_, i) => i);
+  const hMap = Object.fromEntries(D.hourly.map(r => [r.hr, r]));
+  mkChart("chHourly", {
+    type: "bar",
+    data: {
+      labels: hours.map(h => h + ":00"),
+      datasets: [{ label: "Failed, шт.", data: hours.map(h => hMap[h] ? hMap[h].failed : 0),
+        backgroundColor: hours.map(h => h >= 19 ? "rgba(235,77,75,.85)" : "rgba(139,161,151,.55)"), borderRadius: 3 }],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: (c) => fmtN(c.parsed.y) + " фейлів · " + fmtUAH(hMap[hours[c.dataIndex]] ? hMap[hours[c.dataIndex]].lost_gmv : 0) } } },
+      scales: { y: { beginAtZero: true, grid: { color: "#eef2ef" } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } },
+    },
+  });
+
+  renderStores();
+
+  const sel = document.getElementById("storeSelect");
+  sel.innerHTML = D.stores.map(s => `<option value="${s.id}">${s.name} (${s.city})</option>`).join("");
+  sel.onchange = () => renderDrill(sel.value);
+  renderDrill(D.stores[0].id);
+
+  // --- CS ---
+  document.getElementById("csNote").textContent =
+    "CS-тікети — всі support cases, привʼязані до замовлень " + D.title +
+    " (Beehive). Contact rate — тікетів на 100 замовлень.";
+  mkChart("chCsWeekly", {
+    data: {
+      labels: D.weekly.map(r => wLabel(r.period)),
+      datasets: [
+        { type: "bar", label: "CS-тікети, шт.", data: D.weekly.map(r => r.tickets), backgroundColor: "rgba(52,209,134,.7)", borderRadius: 3, yAxisID: "y" },
+        { type: "line", label: "Contact rate", data: D.weekly.map(r => r.contact_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
+        y2: { beginAtZero: true, position: "right", title: { display: true, text: "на 100 зам." }, grid: { drawOnChartArea: false } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+
+  if (D.themes.length) {
+    document.getElementById("themesCard").style.display = "";
+    mkChart("chThemes", {
+      type: "bar",
+      data: {
+        labels: D.themes.map(x => x.name),
+        datasets: [{ label: "Звернень", data: D.themes.map(x => x.n), backgroundColor: "rgba(52,209,134,.75)", borderRadius: 4 }],
+      },
+      options: {
+        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true, grid: { color: "#eef2ef" } }, y: { ticks: { font: { size: 11 } }, grid: { display: false } } },
+      },
+    });
+  } else {
+    document.getElementById("themesCard").style.display = "none";
+  }
+
+  const c = D.complaints;
+  if (c.length) {
+    document.getElementById("complaintsSection").style.display = "";
+    const cFailed = c.filter(r => r.state === "failed");
+    document.getElementById("complaintsNote").textContent =
+      `Кураторський список з #ua-delivery-daily: ${c.length} звернень, з них ${cFailed.length} із зафейленим замовленням на ` +
+      fmtN(cFailed.reduce((s, r) => s + (r.gmv || 0), 0)) + " ₴. Order ID відновлені через Beehive → Databricks.";
+    document.querySelector("#complaintsTable tbody").innerHTML = c.map(r => {
+      const addr = r.city && !r.addr.startsWith("(мережа") ? `${r.addr}, ${r.city}` : r.addr;
+      const order = r.ref ? `${r.ref}${r.order_id ? " · " + r.order_id : ""}` : "—";
+      const pill = r.state === "failed" ? `<span class="pill failed">Failed</span>`
+        : r.state === "delivered" ? `<span class="pill delivered">Delivered</span>` : `<span class="pill na">—</span>`;
+      const lost = r.state === "failed" && r.gmv ? `<span class="lost">${fmtN(r.gmv)}</span>` : (r.state === "delivered" ? "0" : "—");
+      return `<tr><td style="white-space:nowrap">${r.date.split("-").reverse().slice(0,2).join(".")}</td>
+        <td>${addr}</td><td>${r.text}</td><td style="white-space:nowrap">${order}</td>
+        <td>${pill}</td><td class="num">${lost}</td><td style="white-space:nowrap">${r.ticket || "—"}</td></tr>`;
+    }).join("");
+  } else {
+    document.getElementById("complaintsSection").style.display = "none";
+  }
+
+  document.getElementById("footer").innerHTML =
+    "Методологія: GMV/AOV — доставлені замовлення; failed = order_state 'failed'; втрачений GMV = сума order_gmv_local зафейлених замовлень (недоотриманий GMV, не чистий збиток); " +
+    "вина — bad_order_actor_at_fault; NDR = failed / всі замовлення; peer-бенчмарк — усі партнери вертикалі " + D.benchmark_label + " в UA; " +
+    "CS-тікети — main.ng_customer_support.customer_support_support_case. Період: з " + META.start_date + ". Звіт згенеровано автоматично.";
 }
-lostChart("chLostMonthly", DATA.monthly, mLabel);
-lostChart("chLostWeekly", DATA.weekly, wLabel);
 
-// --- Reasons ---
-new Chart(document.getElementById("chReasons"), {
-  type: "bar",
-  data: {
-    labels: DATA.reasons.map(r => r.reason.length > 46 ? r.reason.slice(0, 44) + "…" : r.reason),
-    datasets: [{ label: "Втрачений GMV, ₴", data: DATA.reasons.map(r => r.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 4 }],
-  },
-  options: {
-    indexAxis: "y", responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: (c) => fmtUAH(c.parsed.x) + " · " + fmtN(DATA.reasons[c.dataIndex].n) + " замовлень" } } },
-    scales: { x: { beginAtZero: true, ticks: { callback: fmtN }, grid: { color: "#eef2ef" } }, y: { ticks: { font: { size: 11 } }, grid: { display: false } } },
-  },
-});
-
-// --- Hourly ---
-const hours = Array.from({length: 24}, (_, i) => i);
-const hMap = Object.fromEntries(DATA.hourly.map(r => [r.hr, r]));
-new Chart(document.getElementById("chHourly"), {
-  type: "bar",
-  data: {
-    labels: hours.map(h => h + ":00"),
-    datasets: [{ label: "Failed, шт.", data: hours.map(h => hMap[h] ? hMap[h].failed : 0),
-      backgroundColor: hours.map(h => h >= 19 ? "rgba(235,77,75,.85)" : "rgba(139,161,151,.55)"), borderRadius: 3 }],
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: (c) => fmtN(c.parsed.y) + " фейлів · " + fmtUAH(hMap[hours[c.dataIndex]] ? hMap[hours[c.dataIndex]].lost_gmv : 0) } } },
-    scales: { y: { beginAtZero: true, grid: { color: "#eef2ef" } }, x: { grid: { display: false }, ticks: { font: { size: 10 } } } },
-  },
-});
-
-// --- Stores table (sortable) + drill chart ---
-const adminUrl = (id) => "https://admin-panel.bolt.eu/delivery-provider/providers/" + id + "?tab=info";
-let sortKey = "lost_gmv", sortDir = -1;
 function renderStores() {
-  const rows = [...DATA.stores].sort((a, b) => {
+  const t = D.totals;
+  const rows = [...D.stores].sort((a, b) => {
     const va = a[sortKey], vb = b[sortKey];
     return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * sortDir;
   });
   document.querySelector("#storesTable tbody").innerHTML = rows.map(s => `
     <tr><td><a href="${adminUrl(s.id)}" target="_blank">${s.name}</a><div style="font-size:11px;color:var(--ink-3)">${s.city}</div></td>
-    <td class="num">${fmtN(s.orders)}</td><td class="num">${fmtN(s.failed)}</td>
-    <td class="num ${s.ndr_pct > DATA.totals.bench_ndr_pct ? "badge-hot" : ""}">${s.ndr_pct}%</td>
-    <td class="num lost">${fmtN(s.lost_gmv)}</td><td class="num">${fmtN(s.lost_provider)}</td>
-    <td class="num">${fmtN(s.tickets)}</td></tr>`).join("");
+    <td class="num">${fmtN(s.orders)}</td><td class="num">${fmtN(s.gmv)}</td>
+    <td class="num ${s.ndr_pct > t.bench_ndr_pct ? "badge-hot" : ""}">${s.ndr_pct}%</td>
+    <td class="num lost">${fmtN(s.lost_gmv)}</td><td class="num">${fmtN(s.tickets)}</td>
+    <td class="${s.last_order < D.active_cutoff ? "stale" : ""}" style="white-space:nowrap">${s.last_order.split("-").reverse().slice(0,2).join(".")}</td></tr>`).join("");
 }
 document.querySelectorAll("#storesTable th").forEach(th => {
   th.style.cursor = "pointer";
   th.onclick = () => { const k = th.dataset.k; sortDir = (k === sortKey) ? -sortDir : -1; sortKey = k; renderStores(); };
 });
-renderStores();
 
-const sel = document.getElementById("storeSelect");
-sel.innerHTML = DATA.stores.map(s => `<option value="${s.id}">${s.name} (${s.city})</option>`).join("");
 let drillChart = null;
 function renderDrill(storeId) {
-  const rows = DATA.store_weekly[storeId] || [];
-  if (drillChart) drillChart.destroy();
-  drillChart = new Chart(document.getElementById("chStoreDrill"), {
+  const rows = D.store_weekly[storeId] || [];
+  if (drillChart) { drillChart.destroy(); charts = charts.filter(c => c !== drillChart); }
+  drillChart = mkChart("chStoreDrill", {
     data: {
       labels: rows.map(r => wLabel(r.period)),
       datasets: [
@@ -318,66 +462,13 @@ function renderDrill(storeId) {
     },
   });
 }
-sel.onchange = () => renderDrill(sel.value);
-renderDrill(DATA.stores[0].id);
 
-// --- CS block ---
-document.getElementById("csNote").textContent =
-  "CS-тікети — всі support cases, привʼязані до замовлень " + DATA.partner.title +
-  " (Beehive). Contact rate — тікетів на 100 замовлень: показує, наскільки часто замовлення генерують звернення.";
-new Chart(document.getElementById("chCsWeekly"), {
-  data: {
-    labels: DATA.weekly.map(r => wLabel(r.period)),
-    datasets: [
-      { type: "bar", label: "CS-тікети, шт.", data: DATA.weekly.map(r => r.tickets), backgroundColor: "rgba(52,209,134,.7)", borderRadius: 3, yAxisID: "y" },
-      { type: "line", label: "Contact rate (на 100 зам.)", data: DATA.weekly.map(r => r.contact_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
-    ],
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    interaction: { mode: "index", intersect: false },
-    plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } } },
-    scales: {
-      y: { beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
-      y2: { beginAtZero: true, position: "right", title: { display: true, text: "на 100 зам." }, grid: { drawOnChartArea: false } },
-      x: { grid: { display: false } },
-    },
-  },
-});
-
-new Chart(document.getElementById("chThemes"), {
-  type: "bar",
-  data: {
-    labels: THEMES.map(x => x.name),
-    datasets: [{ label: "Звернень", data: THEMES.map(x => x.n), backgroundColor: "rgba(52,209,134,.75)", borderRadius: 4 }],
-  },
-  options: {
-    indexAxis: "y", responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: { x: { beginAtZero: true, grid: { color: "#eef2ef" } }, y: { ticks: { font: { size: 11 } }, grid: { display: false } } },
-  },
-});
-
-const c = DATA.complaints;
-const cFailed = c.filter(r => r.state === "failed");
-document.getElementById("complaintsNote").textContent =
-  `Кураторський список з #ua-delivery-daily (02.05 — 10.08.2026): ${c.length} звернень, з них ${cFailed.length} із зафейленим замовленням на ` +
-  fmtN(cFailed.reduce((s, r) => s + (r.gmv || 0), 0)) + " ₴. Order ID відновлені через Beehive → Databricks.";
-document.querySelector("#complaintsTable tbody").innerHTML = c.map(r => {
-  const addr = r.city && !r.addr.startsWith("(мережа") ? `${r.addr}, ${r.city}` : r.addr;
-  const order = r.ref ? `${r.ref}${r.order_id ? " · " + r.order_id : ""}` : "—";
-  const pill = r.state === "failed" ? `<span class="pill failed">Failed</span>`
-    : r.state === "delivered" ? `<span class="pill delivered">Delivered</span>` : `<span class="pill na">—</span>`;
-  const lost = r.state === "failed" && r.gmv ? `<span class="lost">${fmtN(r.gmv)}</span>` : (r.state === "delivered" ? "0" : "—");
-  return `<tr><td style="white-space:nowrap">${r.date.split("-").reverse().slice(0,2).join(".")}</td>
-    <td>${addr}</td><td>${r.text}</td><td style="white-space:nowrap">${order}</td>
-    <td>${pill}</td><td class="num">${lost}</td><td style="white-space:nowrap">${r.ticket || "—"}</td></tr>`;
-}).join("");
-
-document.getElementById("footer").innerHTML =
-  "Методологія: failed = order_state 'failed'; втрачений GMV = сума order_gmv_local зафейлених замовлень (недоотриманий GMV, не чистий збиток); " +
-  "вина — bad_order_actor_at_fault; NDR = failed / всі замовлення; peer-бенчмарк — усі партнери вертикалі " + DATA.partner.benchmark_label + " в UA; " +
-  "CS-тікети — main.ng_customer_support.customer_support_support_case. Період: з " + DATA.start_date + ". Звіт згенеровано автоматично.";
+// --- partner selector ---
+const pSel = document.getElementById("partnerSelect");
+pSel.innerHTML = META.partners.map(p => `<option value="${p.slug}">${p.title}</option>`).join("");
+pSel.value = META.default;
+pSel.onchange = () => { sortKey = "lost_gmv"; sortDir = -1; render(pSel.value); };
+render(META.default);
 </script>
 </body>
 </html>

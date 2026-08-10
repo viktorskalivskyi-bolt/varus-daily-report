@@ -1,13 +1,18 @@
-# VARUS Daily Ops Report
+# Operational Report
 
-Автооновлюваний звіт по мережі VARUS (Bolt Food UA): зафейлені замовлення, втрачений GMV,
-CS-тікети — по місяцях і тижнях, плюс кураторський список ескалацій зі Slack `#ua-delivery-daily`.
+Автооновлюваний операційний звіт по партнерах Bolt Food UA (зараз — VARUS, вибір партнера
+в шапці звіту): бізнес-метрики (GMV / замовлення / AOV), покриття магазинів по містах,
+зафейлені замовлення і втрачений GMV, CS-тікети — по місяцях і тижнях, плюс кураторський
+список ескалацій зі Slack `#ua-delivery-daily`.
 
 ## Як це працює
 
-- `build_report.py` тягне свіжі агрегати з Databricks (SQL Statement Execution API):
-  - `main.ng_delivery.dim_order_delivery` — замовлення, фейли, GMV по всіх сторах VARUS UA;
+- `build_report.py` для кожного партнера зі списку `PARTNERS` тягне свіжі агрегати
+  з Databricks (SQL Statement Execution API):
+  - `main.ng_delivery.dim_order_delivery` — замовлення, фейли, GMV, покриття по містах;
   - `main.ng_customer_support.customer_support_support_case` — CS-тікети, привʼязані до цих замовлень.
+- Щоб додати нового партнера — додати запис у `PARTNERS` (slug, назва, LIKE-фільтр,
+  бенчмарк-вертикаль); він зʼявиться в дропдауні автоматично.
 - Дані вшиваються в `template.html` (Chart.js) → `docs/index.html`, який роздається через GitHub Pages:
   **https://viktorskalivskyi-bolt.github.io/varus-daily-report/**
 - Розклад: launchd-джоба на робочому Mac (`~/Library/LaunchAgents/com.viktor.varus-report.plist`)
