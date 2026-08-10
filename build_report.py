@@ -96,10 +96,11 @@ def num(v, default=0):
 
 
 def build_payload(p):
-    F = (
-        "country_code = 'ua' AND lower(provider_name) LIKE '{like}' "
-        f"AND order_created_date_local >= '{START_DATE}'"
-    ).format(like=p["like"])
+    likes = p.get("likes") or [p["like"]]
+    like_expr = "(" + " OR ".join(f"lower(provider_name) LIKE '{l}'" for l in likes) + ")"
+    F = f"country_code = 'ua' AND {like_expr} AND order_created_date_local >= '{START_DATE}'"
+    verticals = p.get("verticals") or [p["benchmark_vertical"]]
+    vertical_expr = "delivery_vertical IN (" + ", ".join(f"'{v}'" for v in verticals) + ")"
 
     q = {}
     for grain, trunc, fmt in (("weekly", "week", "yyyy-MM-dd"), ("monthly", "month", "yyyy-MM")):
@@ -125,7 +126,7 @@ def build_payload(p):
                    SUM(CASE WHEN order_state = 'failed' THEN 1 ELSE 0 END) AS failed,
                    SUM(CASE WHEN is_bad_order = true THEN 1 ELSE 0 END) AS bad_orders
             FROM main.ng_delivery.dim_order_delivery
-            WHERE country_code = 'ua' AND delivery_vertical = '{p["benchmark_vertical"]}'
+            WHERE country_code = 'ua' AND {vertical_expr}
               AND order_created_date_local >= '{START_DATE}'
             GROUP BY 1 ORDER BY 1
         """)
@@ -251,9 +252,10 @@ def build_payload(p):
     weekly, monthly = series("weekly"), series("monthly")
 
     st_tickets = {r["provider_id"]: num(r["tickets"]) for r in q["store_tickets"]}
+    strip = p.get("strip", True)
     stores = [{
         "id": r["provider_id"],
-        "name": r["provider_name"].replace(f'{p["title"]}, ', ""),
+        "name": r["provider_name"].replace(f'{p["title"]}, ', "") if strip else r["provider_name"],
         "city": r["city_name"],
         "orders": num(r["orders"]),
         "failed": num(r["failed"]),
@@ -279,9 +281,10 @@ def build_payload(p):
     } for r in q["cities"]]
 
     complaints = []
-    if p.get("complaints_file"):
-        with open(os.path.join(BASE, p["complaints_file"]), encoding="utf-8") as f:
-            complaints = json.load(f)
+    for cf in (p.get("complaints_files") or ([p["complaints_file"]] if p.get("complaints_file") else [])):
+        with open(os.path.join(BASE, cf), encoding="utf-8") as f:
+            complaints.extend(json.load(f))
+    complaints.sort(key=lambda r: r.get("date", ""), reverse=True)
 
     kyiv_today = (datetime.now(timezone.utc) + timedelta(hours=3)).date()
     active_cutoff = (kyiv_today - timedelta(days=7)).isoformat()
@@ -313,6 +316,7 @@ def build_payload(p):
 
     return {
         "title": p["title"],
+        "scope_note": p.get("scope_note") or f"Всі локації {p['title']} в Україні",
         "benchmark_label": p["benchmark_label"],
         "totals": totals,
         "weekly": weekly,
@@ -329,18 +333,40 @@ def build_payload(p):
     }
 
 
+def aggregate_config():
+    """'Мої партнери': one payload over the union of all partner filters."""
+    themes = {}
+    for p in PARTNERS:
+        for th in p.get("themes", []):
+            themes[th["name"]] = themes.get(th["name"], 0) + th["n"]
+    titles = [p["title"] for p in PARTNERS]
+    return {
+        "slug": "all",
+        "title": "Мої партнери",
+        "scope_note": "Портфель: " + ", ".join(titles) + " — всі локації в Україні",
+        "likes": [p["like"] for p in PARTNERS],
+        "verticals": sorted({p["benchmark_vertical"] for p in PARTNERS}),
+        "benchmark_label": " + ".join(sorted({p["benchmark_label"] for p in PARTNERS})),
+        "complaints_files": [p["complaints_file"] for p in PARTNERS if p.get("complaints_file")],
+        "themes": sorted(
+            [{"name": k, "n": v} for k, v in themes.items()], key=lambda x: -x["n"]),
+        "strip": False,
+    }
+
+
 def build():
     kyiv_now = datetime.now(timezone.utc) + timedelta(hours=3)
     data_all = {}
-    for p in PARTNERS:
+    configs = [aggregate_config()] + PARTNERS
+    for p in configs:
         print(f"building: {p['title']} ...")
         data_all[p["slug"]] = build_payload(p)
 
     meta = {
         "generated_at": kyiv_now.strftime("%d.%m.%Y %H:%M") + " (Київ)",
         "start_date": START_DATE,
-        "default": PARTNERS[0]["slug"],
-        "partners": [{"slug": p["slug"], "title": p["title"]} for p in PARTNERS],
+        "default": "all",
+        "partners": [{"slug": p["slug"], "title": p["title"]} for p in configs],
     }
 
     with open(os.path.join(BASE, "template.html"), encoding="utf-8") as f:

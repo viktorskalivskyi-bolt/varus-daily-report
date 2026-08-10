@@ -269,7 +269,7 @@ function render(slug) {
   document.title = "Operational Report · " + D.title;
   document.getElementById("updated").textContent = META.generated_at;
   document.getElementById("subtitle").textContent =
-    "Всі локації " + D.title + " в Україні · з " + META.start_date.split("-").reverse().join(".") +
+    D.scope_note + " · з " + META.start_date.split("-").reverse().join(".") +
     " · Databricks: dim_order_delivery + customer_support_support_case · бенчмарк: " + D.benchmark_label;
 
   const ndrDelta = (t.ndr_pct - t.bench_ndr_pct).toFixed(2);
@@ -350,7 +350,7 @@ function render(slug) {
   // --- BAD ORDERS ---
   document.getElementById("badNote").textContent =
     `Bad order — замовлення з поганим клієнтським досвідом: фейл, запізнення 15+ хв або скарга через CS. ` +
-    `У ${D.title} bad rate ${t.bad_rate}% (${fmtN(t.bad_orders)} з ${fmtN(t.orders)} замовлень) проти ${t.bench_bad_rate}% у peer-мереж. ` +
+    `Bad rate ${t.bad_rate}% (${fmtN(t.bad_orders)} з ${fmtN(t.orders)} замовлень) проти ${t.bench_bad_rate}% у peer-мереж. ` +
     `Це ширша метрика за NDR: фейли — лише одна з її складових.`;
 
   mkChart("chBadWeekly", {
@@ -459,7 +459,7 @@ function render(slug) {
 
   // --- CS ---
   document.getElementById("csNote").textContent =
-    "CS-тікети — support cases (Beehive), привʼязані до замовлень " + D.title + ". " +
+    "CS-тікети — support cases (Beehive), привʼязані до замовлень вибраного партнера. " +
     "Клієнтські (eater) і кур'єрські рахуються окремо: кур'єрські — це звернення кур'єрів " +
     "(стор не видає замовлення, довге очікування) і теж сигнал проблем на сторах. " +
     "Contact rate — клієнтських тікетів на 100 замовлень.";
