@@ -109,6 +109,11 @@ def build_payload(p):
                    SUM(CASE WHEN order_state = 'failed' THEN 1 ELSE 0 END) AS failed,
                    SUM(CASE WHEN order_state = 'delivered' THEN 1 ELSE 0 END) AS delivered,
                    ROUND(SUM(CASE WHEN order_state = 'delivered' THEN COALESCE(order_gmv_local, 0) ELSE 0 END), 0) AS gmv_delivered,
+                   SUM(CASE WHEN is_bad_order = true THEN 1 ELSE 0 END) AS bad_orders,
+                   SUM(CASE WHEN is_bad_order = true AND bad_order_type LIKE 'late_delivery%' THEN 1 ELSE 0 END) AS bad_late,
+                   SUM(CASE WHEN is_bad_order = true AND bad_order_type LIKE 'failed_order%' THEN 1 ELSE 0 END) AS bad_failed,
+                   SUM(CASE WHEN is_bad_order = true AND bad_order_type = 'missing_or_wrong_item_cs_ticket' THEN 1 ELSE 0 END) AS bad_missing,
+                   SUM(CASE WHEN is_bad_order = true AND bad_order_type LIKE '%quality_cs_ticket' THEN 1 ELSE 0 END) AS bad_quality,
                    {LOST_BUCKETS}
             FROM main.ng_delivery.dim_order_delivery
             WHERE {F}
@@ -117,7 +122,8 @@ def build_payload(p):
         q[f"bench_{grain}"] = sql(f"""
             SELECT date_format(date_trunc('{trunc}', order_created_date_local), '{fmt}') AS period,
                    COUNT(*) AS orders,
-                   SUM(CASE WHEN order_state = 'failed' THEN 1 ELSE 0 END) AS failed
+                   SUM(CASE WHEN order_state = 'failed' THEN 1 ELSE 0 END) AS failed,
+                   SUM(CASE WHEN is_bad_order = true THEN 1 ELSE 0 END) AS bad_orders
             FROM main.ng_delivery.dim_order_delivery
             WHERE country_code = 'ua' AND delivery_vertical = '{p["benchmark_vertical"]}'
               AND order_created_date_local >= '{START_DATE}'
@@ -132,6 +138,13 @@ def build_payload(p):
             WHERE sc.created >= '{START_DATE}'
             GROUP BY 1 ORDER BY 1
         """)
+
+    q["bad_types"] = sql(f"""
+        SELECT bad_order_type, COUNT(*) AS n
+        FROM main.ng_delivery.dim_order_delivery
+        WHERE {F} AND is_bad_order = true
+        GROUP BY 1 ORDER BY n DESC
+    """)
 
     q["reasons"] = sql(f"""
         SELECT COALESCE(NULLIF(manually_failed_order_reason, ''),
@@ -207,6 +220,7 @@ def build_payload(p):
             per = r["period"]
             orders, failed, delivered = num(r["orders"]), num(r["failed"]), num(r["delivered"])
             gmv = num(r["gmv_delivered"])
+            bad = num(r["bad_orders"])
             b = bench.get(per)
             out.append({
                 "period": per,
@@ -216,6 +230,13 @@ def build_payload(p):
                 "aov": round(gmv / delivered) if delivered else 0,
                 "ndr_pct": round(100.0 * failed / orders, 2) if orders else 0,
                 "bench_ndr_pct": round(100.0 * num(b["failed"]) / num(b["orders"]), 2) if b and num(b["orders"]) else None,
+                "bad_orders": bad,
+                "bad_rate": round(100.0 * bad / orders, 2) if orders else 0,
+                "bench_bad_rate": round(100.0 * num(b["bad_orders"]) / num(b["orders"]), 2) if b and num(b["orders"]) else None,
+                "bad_late": num(r["bad_late"]),
+                "bad_failed": num(r["bad_failed"]),
+                "bad_missing": num(r["bad_missing"]),
+                "bad_quality": num(r["bad_quality"]),
                 "lost_provider": num(r["lost_provider"]),
                 "lost_ops": num(r["lost_ops"]),
                 "lost_other": num(r["lost_other"]),
@@ -271,16 +292,20 @@ def build_payload(p):
         "aov": round(sum(r["gmv"] for r in monthly) / delivered_total) if delivered_total else 0,
         "lost_gmv": sum(r["lost_provider"] + r["lost_ops"] + r["lost_other"] for r in monthly),
         "lost_provider": sum(r["lost_provider"] for r in monthly),
+        "bad_orders": sum(r["bad_orders"] for r in monthly),
         "tickets": sum(r["tickets"] for r in monthly),
         "stores_total": len(stores),
         "cities_total": len(cities),
         "stores_active_7d": active_7d,
     }
     totals["ndr_pct"] = round(100.0 * totals["failed"] / totals["orders"], 2) if totals["orders"] else 0
+    totals["bad_rate"] = round(100.0 * totals["bad_orders"] / totals["orders"], 2) if totals["orders"] else 0
     totals["contact_rate"] = round(100.0 * totals["tickets"] / totals["orders"], 1) if totals["orders"] else 0
     b_orders = sum(num(r["orders"]) for r in q["bench_monthly"])
     b_failed = sum(num(r["failed"]) for r in q["bench_monthly"])
+    b_bad = sum(num(r["bad_orders"]) for r in q["bench_monthly"])
     totals["bench_ndr_pct"] = round(100.0 * b_failed / b_orders, 2) if b_orders else 0
+    totals["bench_bad_rate"] = round(100.0 * b_bad / b_orders, 2) if b_orders else 0
 
     return {
         "title": p["title"],
@@ -288,6 +313,7 @@ def build_payload(p):
         "totals": totals,
         "weekly": weekly,
         "monthly": monthly,
+        "bad_types": [{"type": r["bad_order_type"], "n": num(r["n"])} for r in q["bad_types"]],
         "reasons": [{"reason": r["reason"], "n": num(r["n"]), "lost_gmv": num(r["lost_gmv"])} for r in q["reasons"]],
         "hourly": [{"hr": num(r["hr"]), "failed": num(r["failed"]), "lost_gmv": num(r["lost_gmv"])} for r in q["hourly"]],
         "stores": stores,

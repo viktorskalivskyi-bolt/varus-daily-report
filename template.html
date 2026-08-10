@@ -9,25 +9,39 @@
   :root {
     --green: #34d186; --green-dark: #14805a;
     --red: #eb4d4b; --red-soft: rgba(235,77,75,.12);
-    --amber: #f0a92e; --blue: #4a7dd6;
+    --amber: #f0a92e; --blue: #4a7dd6; --violet: #8b5cf6;
     --ink: #16281e; --ink-2: #4c5f56; --ink-3: #8ba197;
-    --bg: #f4f7f5; --card: #ffffff; --line: #e3eae6;
+    --card: #ffffff; --line: #e3eae6;
+    --g-green: linear-gradient(135deg, #34d186 0%, #14805a 100%);
+    --g-blue: linear-gradient(135deg, #6aa8ff 0%, #4a7dd6 100%);
+    --g-amber: linear-gradient(135deg, #ffc95e 0%, #e8930f 100%);
+    --g-red: linear-gradient(135deg, #ff7a6e 0%, #d63031 100%);
+    --g-violet: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+    --shadow: 0 1px 2px rgba(22,40,30,.05), 0 8px 24px -12px rgba(22,40,30,.16);
+    --shadow-lg: 0 2px 4px rgba(22,40,30,.05), 0 16px 40px -16px rgba(22,40,30,.22);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.45; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: var(--ink); line-height: 1.45;
+    background: linear-gradient(160deg, #f0f7f2 0%, #f3f5fa 45%, #f5f2ee 100%); background-attachment: fixed; }
   .wrap { max-width: 1220px; margin: 0 auto; padding: 28px 24px 64px; }
   header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 6px; }
   .brand { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-  .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--green); }
-  h1 { font-size: 25px; font-weight: 800; letter-spacing: -.02em; }
-  .partner-select { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; }
+  .brand-dot { width: 30px; height: 30px; border-radius: 9px; background: var(--g-green); box-shadow: 0 4px 12px -2px rgba(20,128,90,.45); }
+  h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em;
+    background: linear-gradient(90deg, #14805a, #16281e 60%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .partner-select { display: flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; box-shadow: var(--shadow); }
   .partner-select label { font-size: 12px; color: var(--ink-3); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
   .partner-select select { font: inherit; font-size: 15px; font-weight: 700; border: none; background: transparent; color: var(--ink); cursor: pointer; outline: none; }
   .updated { font-size: 13px; color: var(--ink-3); }
   .updated b { color: var(--green-dark); font-weight: 600; }
   .sub { font-size: 13.5px; color: var(--ink-2); margin-bottom: 20px; }
   .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 12px; margin-bottom: 10px; }
-  .kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .kpi { position: relative; overflow: hidden; background: var(--card); border: 1px solid rgba(227,234,230,.7); border-radius: 16px; padding: 16px 17px 15px; box-shadow: var(--shadow); }
+  .kpi::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--g-blue); }
+  .kpi.green::before { background: var(--g-green); }
+  .kpi.red::before { background: var(--g-red); }
+  .kpi.amber::before { background: var(--g-amber); }
+  .kpi.violet::before { background: var(--g-violet); }
   .kpi .v { font-size: 23px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
   .kpi .l { font-size: 12px; color: var(--ink-2); margin-top: 4px; }
   .kpi .s { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
@@ -35,15 +49,16 @@
   .kpi.green .v { color: var(--green-dark); }
   section { margin-bottom: 30px; }
   .block-head { display: flex; align-items: center; gap: 10px; margin: 26px 0 4px; }
-  .block-tag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; }
-  .block-tag.biz { background: rgba(74,125,214,.12); color: var(--blue); }
-  .block-tag.cover { background: rgba(240,169,46,.16); color: #b07708; }
-  .block-tag.failed { background: var(--red-soft); color: var(--red); }
-  .block-tag.cs { background: rgba(52,209,134,.14); color: var(--green-dark); }
+  .block-tag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 5px 12px; border-radius: 99px; color: #fff; box-shadow: var(--shadow); }
+  .block-tag.biz { background: var(--g-blue); }
+  .block-tag.cover { background: var(--g-amber); }
+  .block-tag.bad { background: var(--g-violet); }
+  .block-tag.failed { background: var(--g-red); }
+  .block-tag.cs { background: var(--g-green); }
   h2 { font-size: 19px; font-weight: 800; }
   h3 { font-size: 14.5px; font-weight: 700; margin-bottom: 10px; }
   .note { font-size: 13px; color: var(--ink-3); margin: 4px 0 14px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card { background: var(--card); border: 1px solid rgba(227,234,230,.7); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   @media (max-width: 940px) { .grid2 { grid-template-columns: 1fr; } }
   .chart-box { position: relative; height: 300px; }
@@ -57,11 +72,17 @@
   .pill.failed { background: var(--red-soft); color: var(--red); }
   .pill.delivered { background: rgba(52,209,134,.14); color: var(--green-dark); }
   .pill.na { background: #eef1ef; color: var(--ink-3); }
-  .tbl-scroll { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+  .tbl-scroll { max-height: 560px; overflow: auto; border: 1px solid rgba(227,234,230,.7); border-radius: 16px; background: var(--card); box-shadow: var(--shadow); }
   .lost { color: var(--red); font-weight: 700; }
   .badge-hot { color: var(--red); font-weight: 700; }
   .stale { color: var(--red); font-weight: 700; }
-  .callout { border-left: 4px solid var(--amber); background: #fdf6e8; border-radius: 0 12px 12px 0; padding: 14px 18px; font-size: 14px; margin-bottom: 14px; }
+  .callout { border-left: 4px solid var(--amber); background: linear-gradient(90deg, #fdf3dd, #fdf8ec); border-radius: 0 14px 14px 0; padding: 14px 18px; font-size: 14px; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .metric-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 12px; }
+  .metric-row .mname { font-size: 13px; font-weight: 700; }
+  .metric-row .mnum { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--ink-2); white-space: nowrap; }
+  .metric-bar { height: 8px; border-radius: 99px; background: #eef1ef; margin-top: 5px; overflow: hidden; }
+  .metric-bar > i { display: block; height: 100%; border-radius: 99px; }
+  .metric-def { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
   select.inline { font: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--ink); max-width: 100%; }
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
@@ -107,6 +128,20 @@
           <thead><tr><th>Місто</th><th class="num">Сторів</th><th class="num">Замовлень</th><th class="num">GMV, ₴</th><th class="num">Частка GMV</th><th class="num">NDR %</th></tr></thead>
           <tbody></tbody>
         </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== BAD ORDERS ===== -->
+  <div class="block-head"><span class="block-tag bad">Bad orders</span><h2>Якість: bad orders та їх складові</h2></div>
+  <div class="note" id="badNote"></div>
+  <section>
+    <div class="grid2">
+      <div class="card"><h3>По тижнях: bad orders за типом + bad rate %</h3><div class="chart-box tall"><canvas id="chBadWeekly"></canvas></div></div>
+      <div class="card">
+        <h3>Що входить у bad orders</h3>
+        <div style="font-size:12.5px;color:var(--ink-3)">Замовлення рахується bad, якщо спрацював хоча б один із критеріїв нижче (поле <code>is_bad_order</code> / <code>bad_order_type</code>).</div>
+        <div id="badMetrics"></div>
       </div>
     </div>
   </section>
@@ -189,6 +224,32 @@ const adminUrl = (id) => "https://admin-panel.bolt.eu/delivery-provider/provider
 Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 Chart.defaults.color = "#4c5f56";
 
+// gradient fill helpers (vertical for bars, horizontal for indexAxis:'y')
+const gradFill = (c1, c2) => (context) => {
+  const { ctx, chartArea } = context.chart;
+  if (!chartArea) return c2;
+  const g = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+};
+const gradFillH = (c1, c2) => (context) => {
+  const { ctx, chartArea } = context.chart;
+  if (!chartArea) return c2;
+  const g = ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+};
+
+const BAD_DEFS = {
+  late_delivery_order_15min: { name: "Запізнення доставки 15+ хв", def: "Замовлення доставлене на 15+ хвилин пізніше обіцяного часу.", grad: "linear-gradient(90deg,#ffc95e,#e8930f)" },
+  failed_order_after_provider_accepted: { name: "Фейл після прийняття партнером", def: "Партнер прийняв замовлення, але воно не було доставлене (скасоване/зафейлене).", grad: "linear-gradient(90deg,#ff7a6e,#d63031)" },
+  failed_order_provider_rejected: { name: "Партнер відхилив замовлення", def: "Партнер відхилив (reject) замовлення одразу, не прийнявши його в роботу.", grad: "linear-gradient(90deg,#ff9d95,#eb4d4b)" },
+  missing_or_wrong_item_cs_ticket: { name: "Відсутні / не ті товари (CS-тікет)", def: "Клієнт створив CS-тікет: у замовленні бракує позицій або привезли не те.", grad: "linear-gradient(90deg,#6aa8ff,#4a7dd6)" },
+  order_quality_cs_ticket: { name: "Якість товарів (CS-тікет)", def: "CS-тікет про якість продуктів: зіпсоване, пошкоджене, прострочене.", grad: "linear-gradient(90deg,#a78bfa,#7c3aed)" },
+  timing_quality_cs_ticket: { name: "Скарга на час (CS-тікет)", def: "CS-тікет зі скаргою на довге очікування / час доставки.", grad: "linear-gradient(90deg,#c4b5fd,#8b5cf6)" },
+  delivery_quality_cs_ticket: { name: "Якість доставки (CS-тікет)", def: "CS-тікет про доставку: кур'єр, стан пакування, поводження із замовленням.", grad: "linear-gradient(90deg,#5eead4,#0d9488)" },
+};
+
 let charts = [];
 function mkChart(elId, cfg) {
   const ch = new Chart(document.getElementById(elId), cfg);
@@ -212,13 +273,15 @@ function render(slug) {
     " · Databricks: dim_order_delivery + customer_support_support_case · бенчмарк: " + D.benchmark_label;
 
   const ndrDelta = (t.ndr_pct - t.bench_ndr_pct).toFixed(2);
+  const badDelta = (t.bad_rate - t.bench_bad_rate).toFixed(2);
   document.getElementById("kpis").innerHTML = `
     <div class="kpi"><div class="v">${fmtUAH(t.gmv)}</div><div class="l">GMV (доставлено)</div><div class="s">AOV: ${fmtUAH(t.aov)}</div></div>
     <div class="kpi"><div class="v">${fmtN(t.orders)}</div><div class="l">Замовлень</div><div class="s">${fmtN(Math.round(t.orders / D.weekly.length))} на тиждень у середньому</div></div>
     <div class="kpi green"><div class="v">${t.stores_total}</div><div class="l">Локацій · ${t.cities_total} міст</div><div class="s">Активні за 7 днів: ${t.stores_active_7d} з ${t.stores_total}</div></div>
+    <div class="kpi violet"><div class="v">${t.bad_rate}%</div><div class="l">Bad rate (${fmtN(t.bad_orders)} bad orders)</div><div class="s">Peer: ${t.bench_bad_rate}% (${badDelta > 0 ? "+" : ""}${badDelta} п.п.)</div></div>
     <div class="kpi red"><div class="v">${t.ndr_pct}%</div><div class="l">NDR (${fmtN(t.failed)} failed)</div><div class="s">Peer: ${t.bench_ndr_pct}% (${ndrDelta > 0 ? "+" : ""}${ndrDelta} п.п.)</div></div>
     <div class="kpi red"><div class="v">${fmtUAH(t.lost_gmv)}</div><div class="l">Втрачений GMV</div><div class="s">З вини партнера: ${fmtUAH(t.lost_provider)} (${(100*t.lost_provider/t.lost_gmv).toFixed(0)}%)</div></div>
-    <div class="kpi"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів</div><div class="s">Contact rate: ${t.contact_rate} на 100 зам.</div></div>`;
+    <div class="kpi amber"><div class="v">${fmtN(t.tickets)}</div><div class="l">CS-тікетів</div><div class="s">Contact rate: ${t.contact_rate} на 100 зам.</div></div>`;
 
   const worstM = [...D.monthly].sort((a,b) => (b.lost_provider+b.lost_ops+b.lost_other)-(a.lost_provider+a.lost_ops+a.lost_other))[0];
   const worstS = [...D.stores].sort((a,b) => b.lost_gmv - a.lost_gmv)[0];
@@ -232,7 +295,7 @@ function render(slug) {
     data: {
       labels: rows.map(r => labelFn(r.period)),
       datasets: [
-        { type: "bar", label: "GMV доставлено, ₴", data: rows.map(r => r.gmv), backgroundColor: "rgba(74,125,214,.7)", borderRadius: 3, yAxisID: "y" },
+        { type: "bar", label: "GMV доставлено, ₴", data: rows.map(r => r.gmv), backgroundColor: gradFill("rgba(74,125,214,.5)", "rgba(106,168,255,.95)"), borderRadius: 4, yAxisID: "y" },
         { type: "line", label: "Замовлення, шт.", data: rows.map(r => r.orders), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
       ],
     },
@@ -262,7 +325,7 @@ function render(slug) {
     data: {
       labels: D.cities.map(c => c.city),
       datasets: [
-        { type: "bar", label: "Замовлення, шт.", data: D.cities.map(c => c.orders), backgroundColor: "rgba(240,169,46,.75)", borderRadius: 3, yAxisID: "y" },
+        { type: "bar", label: "Замовлення, шт.", data: D.cities.map(c => c.orders), backgroundColor: gradFill("rgba(232,147,15,.55)", "rgba(255,201,94,.95)"), borderRadius: 4, yAxisID: "y" },
         { type: "line", label: "Сторів", data: D.cities.map(c => c.stores), borderColor: "#16281e", backgroundColor: "#16281e", pointRadius: 4, showLine: false, yAxisID: "y2" },
       ],
     },
@@ -284,14 +347,58 @@ function render(slug) {
     <td class="num">${fmtN(c.gmv)}</td><td class="num">${(100*c.gmv/gmvTotal).toFixed(1)}%</td>
     <td class="num ${100*c.failed/c.orders > t.bench_ndr_pct ? "badge-hot" : ""}">${(100*c.failed/c.orders).toFixed(2)}%</td></tr>`).join("");
 
+  // --- BAD ORDERS ---
+  document.getElementById("badNote").textContent =
+    `Bad order — замовлення з поганим клієнтським досвідом: фейл, запізнення 15+ хв або скарга через CS. ` +
+    `У ${D.title} bad rate ${t.bad_rate}% (${fmtN(t.bad_orders)} з ${fmtN(t.orders)} замовлень) проти ${t.bench_bad_rate}% у peer-мереж. ` +
+    `Це ширша метрика за NDR: фейли — лише одна з її складових.`;
+
+  mkChart("chBadWeekly", {
+    data: {
+      labels: D.weekly.map(r => wLabel(r.period)),
+      datasets: [
+        { type: "bar", stack: "bad", label: "Запізнення 15+ хв", data: D.weekly.map(r => r.bad_late), backgroundColor: gradFill("rgba(232,147,15,.55)", "rgba(255,201,94,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "bad", label: "Фейли (accept + reject)", data: D.weekly.map(r => r.bad_failed), backgroundColor: gradFill("rgba(214,48,49,.6)", "rgba(255,122,110,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "bad", label: "Відсутні / не ті товари", data: D.weekly.map(r => r.bad_missing), backgroundColor: gradFill("rgba(74,125,214,.55)", "rgba(106,168,255,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "bad", label: "Скарги на якість (CS)", data: D.weekly.map(r => r.bad_quality), backgroundColor: gradFill("rgba(124,58,237,.5)", "rgba(167,139,250,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "line", label: "Bad rate %", data: D.weekly.map(r => r.bad_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
+        { type: "line", label: "Bad rate % peer", data: D.weekly.map(r => r.bench_bad_rate), borderColor: "#8b5cf6", borderDash: [6,4], backgroundColor: "#8b5cf6", tension: .3, pointRadius: 2, yAxisID: "y2" },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 11, boxHeight: 11, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => c.dataset.label + ": " + (c.dataset.yAxisID === "y2" ? c.parsed.y + "%" : fmtN(c.parsed.y)),
+          footer: (items) => { const r = D.weekly[items[0].dataIndex]; return "Всього bad: " + fmtN(r.bad_orders) + " з " + fmtN(r.orders) + " замовлень"; } } } },
+      scales: {
+        y: { stacked: true, beginAtZero: true, title: { display: true, text: "шт." }, grid: { color: "#eef2ef" } },
+        y2: { beginAtZero: true, position: "right", title: { display: true, text: "bad rate %" }, grid: { drawOnChartArea: false } },
+        x: { stacked: true, grid: { display: false } },
+      },
+    },
+  });
+
+  const badTotal = D.bad_types.reduce((s, r) => s + r.n, 0);
+  const badMax = Math.max(...D.bad_types.map(r => r.n));
+  document.getElementById("badMetrics").innerHTML = D.bad_types.map(r => {
+    const def = BAD_DEFS[r.type] || { name: r.type, def: "", grad: "linear-gradient(90deg,#8ba197,#4c5f56)" };
+    return `<div class="metric-row"><span class="mname">${def.name}</span>
+      <span class="mnum">${fmtN(r.n)} · ${(100*r.n/badTotal).toFixed(1)}%</span></div>
+      <div class="metric-bar"><i style="width:${Math.max(3, 100*r.n/badMax)}%;background:${def.grad}"></i></div>
+      <div class="metric-def">${def.def}</div>`;
+  }).join("") + `<div class="metric-row" style="border-top:1px solid var(--line);padding-top:10px">
+      <span class="mname">Разом bad orders</span><span class="mnum"><b>${fmtN(badTotal)}</b> · bad rate ${t.bad_rate}%</span></div>
+      <div class="metric-def">Одне замовлення може мати кілька проблем, але в bad rate рахується один раз (за головним типом).</div>`;
+
   // --- FAILED ---
   const lostChart = (elId, rows, labelFn) => mkChart(elId, {
     data: {
       labels: rows.map(r => labelFn(r.period)),
       datasets: [
-        { type: "bar", stack: "lost", label: "Вина партнера, ₴", data: rows.map(r => r.lost_provider), backgroundColor: "rgba(235,77,75,.85)", borderRadius: 3, yAxisID: "y" },
-        { type: "bar", stack: "lost", label: "Вина Bolt ops, ₴", data: rows.map(r => r.lost_ops), backgroundColor: "rgba(240,169,46,.8)", borderRadius: 3, yAxisID: "y" },
-        { type: "bar", stack: "lost", label: "Інше, ₴", data: rows.map(r => r.lost_other), backgroundColor: "rgba(139,161,151,.6)", borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "lost", label: "Вина партнера, ₴", data: rows.map(r => r.lost_provider), backgroundColor: gradFill("rgba(214,48,49,.7)", "rgba(255,122,110,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "lost", label: "Вина Bolt ops, ₴", data: rows.map(r => r.lost_ops), backgroundColor: gradFill("rgba(232,147,15,.6)", "rgba(255,201,94,.95)"), borderRadius: 3, yAxisID: "y" },
+        { type: "bar", stack: "lost", label: "Інше, ₴", data: rows.map(r => r.lost_other), backgroundColor: gradFill("rgba(139,161,151,.5)", "rgba(139,161,151,.8)"), borderRadius: 3, yAxisID: "y" },
         { type: "line", label: "NDR %", data: rows.map(r => r.ndr_pct), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
         { type: "line", label: "NDR % peer", data: rows.map(r => r.bench_ndr_pct), borderColor: "#4a7dd6", borderDash: [6,4], backgroundColor: "#4a7dd6", tension: .3, pointRadius: 2, yAxisID: "y2" },
       ],
@@ -316,7 +423,7 @@ function render(slug) {
     type: "bar",
     data: {
       labels: D.reasons.map(r => r.reason.length > 46 ? r.reason.slice(0, 44) + "…" : r.reason),
-      datasets: [{ label: "Втрачений GMV, ₴", data: D.reasons.map(r => r.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 4 }],
+      datasets: [{ label: "Втрачений GMV, ₴", data: D.reasons.map(r => r.lost_gmv), backgroundColor: gradFillH("rgba(214,48,49,.75)", "rgba(255,122,110,.95)"), borderRadius: 5 }],
     },
     options: {
       indexAxis: "y", responsive: true, maintainAspectRatio: false,
@@ -358,7 +465,7 @@ function render(slug) {
     data: {
       labels: D.weekly.map(r => wLabel(r.period)),
       datasets: [
-        { type: "bar", label: "CS-тікети, шт.", data: D.weekly.map(r => r.tickets), backgroundColor: "rgba(52,209,134,.7)", borderRadius: 3, yAxisID: "y" },
+        { type: "bar", label: "CS-тікети, шт.", data: D.weekly.map(r => r.tickets), backgroundColor: gradFill("rgba(20,128,90,.6)", "rgba(52,209,134,.95)"), borderRadius: 4, yAxisID: "y" },
         { type: "line", label: "Contact rate", data: D.weekly.map(r => r.contact_rate), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
       ],
     },
@@ -380,7 +487,7 @@ function render(slug) {
       type: "bar",
       data: {
         labels: D.themes.map(x => x.name),
-        datasets: [{ label: "Звернень", data: D.themes.map(x => x.n), backgroundColor: "rgba(52,209,134,.75)", borderRadius: 4 }],
+        datasets: [{ label: "Звернень", data: D.themes.map(x => x.n), backgroundColor: gradFillH("rgba(20,128,90,.75)", "rgba(52,209,134,.95)"), borderRadius: 5 }],
       },
       options: {
         indexAxis: "y", responsive: true, maintainAspectRatio: false,
@@ -414,7 +521,8 @@ function render(slug) {
   }
 
   document.getElementById("footer").innerHTML =
-    "Методологія: GMV/AOV — доставлені замовлення; failed = order_state 'failed'; втрачений GMV = сума order_gmv_local зафейлених замовлень (недоотриманий GMV, не чистий збиток); " +
+    "Методологія: GMV/AOV — доставлені замовлення; failed = order_state 'failed'; bad orders = is_bad_order (фейл / запізнення 15+ хв / CS-скарга, розбивка за bad_order_type); " +
+    "втрачений GMV = сума order_gmv_local зафейлених замовлень (недоотриманий GMV, не чистий збиток); " +
     "вина — bad_order_actor_at_fault; NDR = failed / всі замовлення; peer-бенчмарк — усі партнери вертикалі " + D.benchmark_label + " в UA; " +
     "CS-тікети — main.ng_customer_support.customer_support_support_case. Період: з " + META.start_date + ". Звіт згенеровано автоматично.";
 }
@@ -445,7 +553,7 @@ function renderDrill(storeId) {
     data: {
       labels: rows.map(r => wLabel(r.period)),
       datasets: [
-        { type: "bar", label: "Втрачений GMV, ₴", data: rows.map(r => r.lost_gmv), backgroundColor: "rgba(235,77,75,.8)", borderRadius: 3, yAxisID: "y" },
+        { type: "bar", label: "Втрачений GMV, ₴", data: rows.map(r => r.lost_gmv), backgroundColor: gradFill("rgba(214,48,49,.7)", "rgba(255,122,110,.95)"), borderRadius: 4, yAxisID: "y" },
         { type: "line", label: "Failed, шт.", data: rows.map(r => r.failed), borderColor: "#16281e", backgroundColor: "#16281e", tension: .3, pointRadius: 3, yAxisID: "y2" },
       ],
     },
