@@ -87,6 +87,36 @@
   a { color: var(--blue); text-decoration: none; }
   a:hover { text-decoration: underline; }
   footer { margin-top: 40px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 16px; }
+
+  /* --- glossary --- */
+  details.glossary { background: var(--card); border: 1px solid rgba(227,234,230,.7); border-radius: 16px; box-shadow: var(--shadow); margin-bottom: 18px; overflow: hidden; }
+  details.glossary summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; padding: 13px 18px; font-size: 13.5px; font-weight: 700; color: var(--ink-2); user-select: none; }
+  details.glossary summary::-webkit-details-marker { display: none; }
+  details.glossary summary .chev { margin-left: auto; font-size: 11px; color: var(--ink-3); transition: transform .2s; }
+  details.glossary[open] summary .chev { transform: rotate(180deg); }
+  details.glossary summary .gtag { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 99px; color: #fff; background: var(--g-green); }
+  .gloss-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; padding: 2px 18px 16px; }
+  @media (max-width: 940px) { .gloss-grid { grid-template-columns: 1fr; } }
+  .gloss-item { padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; color: var(--ink-2); }
+  .gloss-item b { color: var(--ink); font-size: 13px; }
+
+  /* --- conclusions / action plan --- */
+  .concl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 940px) { .concl-grid { grid-template-columns: 1fr; } }
+  .concl-card { background: var(--card); border: 1px solid rgba(227,234,230,.7); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .concl-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; }
+  .concl-card.work::before { background: var(--g-red); }
+  .concl-card.bolt::before { background: var(--g-green); }
+  .concl-card.partner::before { background: var(--g-blue); }
+  .concl-card h3 { margin-bottom: 8px; }
+  .concl-card ul { margin: 0; padding-left: 18px; }
+  .concl-card li { font-size: 13px; color: var(--ink-2); padding: 4px 0; }
+  .concl-card li::marker { color: var(--ink-3); }
+  .concl-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 14px; }
+  @media (max-width: 940px) { .concl-meta { grid-template-columns: 1fr; } }
+  .concl-meta .card { padding: 14px 18px; }
+  .concl-meta .mtitle { font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 5px; }
+  .concl-meta .mtext { font-size: 13px; color: var(--ink-2); }
 </style>
 </head>
 <body>
@@ -103,6 +133,25 @@
     <div class="updated">Оновлено: <b id="updated"></b> · автооновлення щодня о 06:00 (Київ)</div>
   </header>
   <div class="sub" id="subtitle"></div>
+
+  <!-- ===== СЛОВНИК ===== -->
+  <details class="glossary" open>
+    <summary><span class="gtag">Словник</span> Що означають метрики у цьому звіті <span class="chev">▼</span></summary>
+    <div class="gloss-grid">
+      <div class="gloss-item"><b>GMV</b> (Gross Merchandise Value) — сума кошиків доставлених замовлень, ₴. Показує обіг через Bolt Food без вирахування комісій.</div>
+      <div class="gloss-item"><b>Замовлення / Orders</b> — усі створені замовлення за період, незалежно від результату (доставлені + зафейлені + скасовані).</div>
+      <div class="gloss-item"><b>AOV</b> (Average Order Value) — середній чек: GMV ÷ кількість доставлених замовлень.</div>
+      <div class="gloss-item"><b>Failed order</b> — замовлення, яке не було доставлене клієнту: стор відхилив, не зібрав, не видав кур'єру, або його скасувала підтримка.</div>
+      <div class="gloss-item"><b>NDR</b> (Non-Delivery Rate) — % зафейлених замовлень від усіх створених. Головна метрика надійності стора: що нижче, то краще.</div>
+      <div class="gloss-item"><b>Втрачений GMV</b> — сума кошиків зафейлених замовлень: гроші, які клієнт був готовий заплатити, але замовлення не відбулося.</div>
+      <div class="gloss-item"><b>Bad order</b> — замовлення з поганим клієнтським досвідом: фейл, запізнення 15+ хв, відсутні/не ті товари або скарга на якість. <b>Bad rate</b> — % таких від усіх замовлень.</div>
+      <div class="gloss-item"><b>CS-тікет</b> — звернення до служби підтримки Bolt, привʼязане до замовлення. Клієнтські (скарги на замовлення) і кур'єрські (проблеми на видачі) рахуємо окремо.</div>
+      <div class="gloss-item"><b>Contact rate</b> — кількість клієнтських CS-тікетів на 100 замовлень. Показує, як часто замовлення закінчується зверненням у підтримку.</div>
+      <div class="gloss-item"><b>Peer-бенчмарк</b> — середнє значення метрики по інших мережах того ж сегмента в Україні. Дозволяє порівняти себе з ринком.</div>
+      <div class="gloss-item"><b>Вина / actor at fault</b> — хто спричинив фейл: партнер (не зібрав, відхилив), Bolt ops (кур'єри, supply) чи інше (клієнт, форс-мажор).</div>
+      <div class="gloss-item"><b>Активний стор</b> — локація, що мала хоча б одне замовлення за останні 7 днів. «Ост. замовлення» червоним = стор простоює.</div>
+    </div>
+  </details>
 
   <div class="kpis" id="kpis"></div>
   <div class="callout" id="callout"></div>
@@ -207,6 +256,24 @@
       </table>
     </div>
   </section>
+
+  <!-- ===== ВИСНОВКИ ТА ПЛАН ДІЙ ===== -->
+  <div id="conclusionsBlock" style="display:none">
+    <div class="block-head"><span class="block-tag" style="background:var(--g-green)">Висновки</span><h2>Над чим працюємо та план дій</h2></div>
+    <div class="note">Блок оновлюється разом зі звітом. Статуси по пунктах звіряємо на щотижневій зустрічі.</div>
+    <section>
+      <div class="concl-grid">
+        <div class="concl-card work"><h3>Над чим треба працювати партнеру</h3><ul id="conclWork"></ul></div>
+        <div class="concl-card bolt"><h3>Пропозиції та дії Bolt</h3><ul id="conclBolt"></ul></div>
+        <div class="concl-card partner"><h3>Очікувані покращення з боку партнера</h3><ul id="conclPartner"></ul></div>
+      </div>
+      <div class="concl-meta">
+        <div class="card"><div class="mtitle">Частота зустрічей</div><div class="mtext" id="conclCadence"></div></div>
+        <div class="card"><div class="mtitle">Дедлайни по фіксах</div><div class="mtext" id="conclDeadline"></div></div>
+        <div class="card"><div class="mtitle">Follow-up</div><div class="mtext" id="conclFollowup"></div></div>
+      </div>
+    </section>
+  </div>
 
   <footer id="footer"></footer>
 </div>
@@ -521,6 +588,21 @@ function render(slug) {
     }).join("");
   } else {
     document.getElementById("complaintsSection").style.display = "none";
+  }
+
+  // --- Висновки та план дій ---
+  const ap = D.action_plan;
+  if (ap) {
+    document.getElementById("conclusionsBlock").style.display = "";
+    const li = (items) => (items || []).map(x => `<li>${x}</li>`).join("");
+    document.getElementById("conclWork").innerHTML = li(ap.work_on);
+    document.getElementById("conclBolt").innerHTML = li(ap.bolt_actions);
+    document.getElementById("conclPartner").innerHTML = li(ap.partner_actions);
+    document.getElementById("conclCadence").textContent = ap.cadence || "—";
+    document.getElementById("conclDeadline").textContent = ap.deadline || "—";
+    document.getElementById("conclFollowup").textContent = ap.follow_up || "—";
+  } else {
+    document.getElementById("conclusionsBlock").style.display = "none";
   }
 
   document.getElementById("footer").innerHTML =
